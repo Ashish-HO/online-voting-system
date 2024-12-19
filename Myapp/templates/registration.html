@@ -1,0 +1,137 @@
+{% load static%}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+
+    <!-- Bootstrap CSS -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css"
+      integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
+      crossorigin="anonymous"
+    />
+
+    <title>Online voting system</title>
+  </head>
+  <body>
+    <h1 class="text-center">Online Voting System</h1>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script
+      src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+      integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+      integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/js/bootstrap.min.js"
+      integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+      crossorigin="anonymous"
+    ></script>
+    <link rel="stylesheet" href="{% static "login.css" %}" />
+    <section class="vh-100">
+      <div class="container-fluid h-custom">
+        <div class="row d-flex justify-content-center align-items-center h-100">
+          <div class="col-md-9 col-lg-6 col-xl-5">
+            <img src="{%static "Register.png" %}" class="img-fluid" alt="Sample
+            image" style="height:300px "/>
+          </div>
+          <div class="col-md-8 col-lg-6 col-xl-4 offset-xl-1">
+            <form method="POST">
+              {% csrf_token %}
+              <h3>
+                <label class="form-label" for="form3Example4">
+                  Registration Form
+                </label>
+              </h3>
+              <label class="form-label" for="form3Example3"
+                >ID number(Format:PAS078BCT005)</label
+              >
+              <div data-mdb-input-init class="form-outline mb-3">
+                <input
+                  type="text"
+                  id="username"
+                  class="form-control form-control-lg"
+                  name="username"
+                  placeholder="Enter your ID number."
+                  pattern="PAS0\['77'-'81']BCT0\[0-9]{2}"
+                  required
+                />
+              </div>
+              <!-- otp input -->
+              <label class="form-label" for="form3Example3"
+                >Email address</label
+              >
+
+              <div data-mdb-input-init class="form-outline mb-3">
+                <input
+                  type="email"
+                  id="email"
+                  class="form-control form-control-lg"
+                  name="email"
+                  placeholder="Enter your email address here."
+                />
+              </div>
+
+              <label class="form-label" for="form3Example3"
+                >Create Password</label
+              >
+              <div data-mdb-input-init class="form-outline mb-3">
+                <input
+                  type="password"
+                  id="password1"
+                  class="form-control form-control-lg"
+                  name="password1"
+                  placeholder="Create new password"
+                />
+              </div>
+
+              <label class="form-label" for="form3Example3"
+                >confirm password</label
+              >
+              <div data-mdb-input-init class="form-outline mb-3">
+                <input
+                  type="password"
+                  id="password2"
+                  class="form-control form-control-lg"
+                  name="password2"
+                  placeholder="confirm your password"
+                />
+              </div>
+              {%for error in errors%}
+              <p>{{errors.password2}}</p>
+              {%endfor%}
+
+              <div class="text-center text-lg-start mt-4 pt-2">
+                <button
+                  type="submit"
+                  data-mdb-button-init
+                  data-mdb-ripple-init
+                  class="btn btn-danger btn-lg"
+                  style="padding-left: 2.5rem; padding-right: 2.5rem"
+                >
+                  Register
+                </button>
+                <p class="small fw-bold mt-2 pt-1 mb-0">
+                  Already have an account?
+                  <a href="{% url 'loginpage' %}" class="link-danger">Login</a>
+                </p>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+  </body>
+</html>
