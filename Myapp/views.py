@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 from django.views import View
 
 from datetime import datetime
+
 import pyotp
 
 
@@ -69,12 +70,13 @@ class otp(View):
 
     def post(self, request):
         otp = request.POST.get("otp")
-        print(otp)
+        print(type(otp))
         username = request.session["username"]
         otp_secret = request.session["otp_secret"]
         valid_date = request.session["otp_valid_date"]
 
         print(f"username : {username}")
+        print(f"otp_secret:{otp_secret}")
         print(f"valid_date:{valid_date}")
 
         if otp_secret and valid_date is not None:
@@ -82,7 +84,11 @@ class otp(View):
 
             if valid_until > datetime.now():
                 totp = pyotp.TOTP(otp_secret, interval=60)
-                if totp.verify(otp):
+                print(type(totp.now()))
+                print(totp)
+                print(totp.now())
+
+                if pyotp.TOTP(otp_secret, interval=60).verify(otp):
                     user = get_object_or_404(User, username=username)
                     login(request, user)
 
