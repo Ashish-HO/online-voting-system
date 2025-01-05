@@ -60,7 +60,7 @@ class LoginUser(View):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             # SEND OTP TO USER.....
-            send_otp(request,email)
+            send_otp(request, email)
             request.session["username"] = username
             return redirect("otp")
         else:
@@ -93,8 +93,8 @@ class otp(View):
                     user = get_object_or_404(User, username=username)
                     login(request, user)
 
-                    # del request.session["otp_secret"]
-                    # del request.session["otp_valid_date"]
+                    del request.session["otp_secret"]
+                    del request.session["otp_valid_date"]
                     return redirect("homepage")
                 else:
                     messages.info(request, "Invalid OTP")
