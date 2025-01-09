@@ -15,12 +15,12 @@ def send_otp(request, email):
     print(f"Your one time password is: {otp}")
 
     # email sending
-    subject = "OTP for login"
-    message = f"Your one time password is {otp} and is valid for only 3 minutes."
-    email_from = settings.EMAIL_HOST_USER
-    recipient_list = [email]
+    # subject = "OTP for login"
+    # message = f"Your one time password is {otp} and is valid for only 3 minutes."
+    # email_from = settings.EMAIL_HOST_USER
+    # recipient_list = [email]
 
-    try:
-        send_mail(subject, message, email_from, recipient_list, fail_silently=False)
-    except:
-        pass
+    # try:
+    #     send_mail(subject, message, email_from, recipient_list, fail_silently=False)
+    # except:
+    #     pass

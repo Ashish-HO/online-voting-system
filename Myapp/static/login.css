@@ -27,3 +27,7 @@ img
     width: 200%;
 }
 
+username
+{
+    text-transform: lowercase;
+}

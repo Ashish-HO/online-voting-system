@@ -27,12 +27,22 @@ class register(View):
         return render(request, "registration.html", self.errors)
 
     def post(self, request):
-        form = CreateUserForm(request.POST)  # Fill form with data from request
-        email = request.POST.get("email")
+        username = request.POST.get("username").lower()
+        password1 = request.POST.get("password1")
+        password2 = request.POST.get("password2")
+        email = username.lower() + "@wrc.edu.np"
+
+        info = {
+            "username": username,
+            "email": email,
+            "password1": password1,
+            "password2": password2,
+        }
+        form = CreateUserForm(info)
         try:
-            username_exists = User.objects.get(username=request.POST["username"])
-            email_taken = User.objects.get(email=request.POST["email"])
-            print(email_taken)
+            username_exists = User.objects.get(
+                username=request.POST["username"].lower()
+            )
             messages.info(request, "User already registered.")
             return redirect("loginpage")
         except:
@@ -52,21 +62,18 @@ class LoginUser(View):
         return render(request, "login.html")
 
     def post(self, request):
-        username = request.POST.get("username")
+        username = request.POST.get("username").lower()
         password = request.POST.get("password")
-        email = User.objects.get(username=username).email
-        print("from login page")
-        print(email)
         user = authenticate(request, username=username, password=password)
         if user is not None:
-            # SEND OTP TO USER.....
+            # SEND OTP TO USER....
+            email=user.email
             send_otp(request, email)
             request.session["username"] = username
             return redirect("otp")
         else:
             messages.info(request, "Incorrect Credentials.")
-
-        return render(request, "login.html")
+        return redirect("loginpage")
 
 
 class otp(View):
@@ -98,11 +105,10 @@ class otp(View):
                     return redirect("homepage")
                 else:
                     messages.info(request, "Invalid OTP")
-                    return redirect("otp")
+                    return render(request, "otp.html")
             else:
                 messages.info(request, "OTP expired")
-                return redirect("otp")
-
+                return render(request, "otp.html")
         else:
             messages.info(request, "Internal error")
             return render(request, "loginpage")
