@@ -95,9 +95,7 @@
                 >
                   Login
                 </button>
-                {%for message in messages%}
-                <p>{{message}}</p>
-                {%endfor%}
+
                 <p class="small fw-bold mt-2 pt-1 mb-0">
                   Don't have an account?
                   <a href="{% url 'registration' %}" class="link-danger"

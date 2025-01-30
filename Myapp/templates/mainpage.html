@@ -1,0 +1,214 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
+    />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Voting System</title>
+    <link rel="stylesheet" href="{% static 'style.css' %}" />
+  </head>
+  <body>
+    <div class="sidebar" id="sidebar">
+      <div class="toggle" id="toggleBtn">☰</div>
+      <a class="options" href="#"><span>Vote</span></a>
+      <a class="options" href="#"><span>Post</span></a>
+      <a class="logout" href="{% url 'logoutpage' %}"
+        ><span
+          ><i class="fa fa-power-off" style="font-size: 12px"></i
+          >&nbsp;Logout</span
+        ></a
+      >
+    </div>
+
+    <div class="content" id="content">
+      <h1>FSU ELECTION OF WRC</h1>
+
+      <div class="container">
+        <div id="positions">
+          <!-- Positions and candidates will be generated here -->
+        </div>
+      </div>
+      <button type="submit" id="submitVotes" class="submit-btn">Submit</button>
+    </div>
+    <div id="results"></div>
+    <div class="user-id-display">
+      <span>Welcome,</span>
+      <span id="userId">User12345</span>
+    </div>
+
+    <script id="data-id">
+      const data = {{ data|safe }};
+
+      const President = data['president'];
+      const VicePresident = data['vice_president']; // Assuming you have a similar array for Vice-President
+      const Secretary = data['secretary']; // Assuming you have a similar array for Secretary
+      const JointSecretary = data['joint_secretary']; // Assuming you have a similar array for Joint Secretary
+      const Treasurer=data['treasurer']
+      const Member = data['member']; // Assuming you have a similar array for Member
+
+      const sidebar = document.getElementById("sidebar");
+      const content = document.getElementById("content");
+      const toggleBtn = document.getElementById("toggleBtn");
+
+      toggleBtn.addEventListener("click", () => {
+        sidebar.classList.toggle("collapsed");
+        content.classList.toggle("collapsed");
+      });
+
+      const positions = [
+        {
+          title: "President",
+          candidates: [],
+        },
+        {
+          title: "Vice-President",
+          candidates: [],
+        },
+        {
+          title: "Secretary",
+          candidates: [],
+        },
+        {
+          title: "Joint Secretary",
+          candidates: [],
+        },
+        {
+          title: "Treasurer",
+          candidates: [],
+        },
+        {
+          title: "Member",
+          candidates: [],
+        },
+      ];
+
+      // Populate candidates for each position using a for loop
+      for (let i = 0; i < President.length; i++) {
+        positions[0].candidates.push({
+          name: President[i].name,
+          photo: President[i].photo,
+        });
+      }
+
+      for (let i = 0; i < VicePresident.length; i++) {
+        positions[1].candidates.push({
+          name: VicePresident[i].name,
+          photo: VicePresident[i].photo,
+        });
+      }
+
+      for (let i = 0; i < Secretary.length; i++) {
+        positions[2].candidates.push({
+          name: Secretary[i].name,
+          photo: Secretary[i].photo,
+        });
+      }
+      for (let i = 0; i < JointSecretary.length; i++) {
+        positions[3].candidates.push({
+          name: JointSecretary[i].name,
+          photo: JointSecretary[i].photo,
+        });
+      }
+
+      for (let i = 0; i < Treasurer.length; i++) {
+        positions[4].candidates.push({
+          name: Treasurer[i].name,
+          photo: Treasurer[i].photo,
+        });
+      }
+
+
+      for (let i = 0; i < Member.length; i++) {
+        positions[5].candidates.push({
+          name: Member[i].name,
+          photo: Member[i].photo,
+        });
+      }
+
+      const positionsContainer = document.getElementById("positions");
+
+      positions.forEach((position) => {
+        const positionDiv = document.createElement("div");
+        positionDiv.classList.add("position");
+        const positionTitle = document.createElement("h2");
+        positionTitle.textContent = position.title;
+        positionDiv.appendChild(positionTitle);
+
+        const candidatesDiv = document.createElement("div");
+        candidatesDiv.classList.add("candidates");
+
+        position.candidates.forEach((candidate) => {
+          const candidateDiv = document.createElement("div");
+          candidateDiv.classList.add("candidate");
+          candidateDiv.innerHTML = `
+            <img src="${candidate.photo}" alt="${candidate.name}" style="width:80px; height:80px; border-radius:50%;">
+            <h3>${candidate.name}</h3>`;
+
+          candidateDiv.addEventListener("click", () => {
+            // Toggle the "active" class for individual candidates
+            candidateDiv.classList.toggle("active");
+
+            // Ensure only one candidate per position has the "active" class
+            Array.from(candidatesDiv.children).forEach((child) => {
+              if (child !== candidateDiv) {
+                child.classList.remove("active");
+              }
+            });
+          });
+          candidatesDiv.appendChild(candidateDiv);
+        });
+
+        positionDiv.appendChild(candidatesDiv);
+        positionsContainer.appendChild(positionDiv);
+      });
+
+      // Process votes on Submit button click
+      const submitBtn = document.getElementById("submitVotes");
+      const resultsContainer = document.getElementById("results");
+
+      submitBtn.addEventListener("click", () => {
+        const votes = {};
+
+        // Loop through positions and extract active candidates
+        document.querySelectorAll(".position").forEach((positionDiv) => {
+          const positionTitle = positionDiv.querySelector("h2").textContent;
+          const activeCandidate = positionDiv.querySelector(".candidate.active");
+
+          if (activeCandidate) {
+            const candidateName = activeCandidate.querySelector("h3").textContent;
+            const candidatePhoto = activeCandidate.querySelector("img").src;
+            votes[positionTitle] = { name: candidateName, photo: candidatePhoto };
+          } else {
+            votes[positionTitle] = { name: "No vote cast", photo: "" };
+          }
+        });
+
+        // Clear and display results dynamically in the results container
+        resultsContainer.innerHTML = "<h3>Results</h3>";
+        for (const [position, { name, photo }] of Object.entries(votes)) {
+          resultsContainer.innerHTML += `
+            <div class="result">
+              <h4>${position}:</h4>
+              ${
+                photo
+                  ? `<img src="${photo}" alt="${name}" style="width:50px; height:50px; border-radius:50%;">`
+                  : ""
+              }
+              <p>${name}</p>
+            </div>`;
+        }
+        console.log("Votes:", votes);
+      });
+
+      document.addEventListener("DOMContentLoaded", () => {
+        const userIdElement = document.getElementById("userId");
+        const userId = "Sarad2025";
+        if (userIdElement) userIdElement.textContent = userId;
+      });
+    </script>
+  </body>
+</html>

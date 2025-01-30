@@ -1,0 +1,6 @@
+migrations
+uploads
+db.sqlite3
+__pycache__
+pipfile
+pipfile.lock

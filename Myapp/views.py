@@ -11,15 +11,20 @@ import pyotp
 from .forms import CreateUserForm
 from .utils import send_otp
 
+from json import dumps
+
+# vote form
+from . import models
+
 
 # Create your views here.
 @login_required(login_url="loginpage")
-def logoutpage(request):
+def LogoutPage(request):
     logout(request)
     return redirect("loginpage")
 
 
-class register(View):
+class Register(View):
     form = CreateUserForm()
     errors = {}
 
@@ -56,7 +61,7 @@ class register(View):
         )  # SHOW REGISTRATION PAGE WITH ERRORS
 
 
-class LoginUser(View):
+class LoginPage(View):
 
     def get(self, request):
         return render(request, "login.html")
@@ -67,7 +72,7 @@ class LoginUser(View):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             # SEND OTP TO USER....
-            email=user.email
+            email = user.email
             send_otp(request, email)
             request.session["username"] = username
             return redirect("otp")
@@ -105,15 +110,52 @@ class otp(View):
                     return redirect("homepage")
                 else:
                     messages.info(request, "Invalid OTP")
-                    return render(request, "otp.html")
             else:
                 messages.info(request, "OTP expired")
-                return render(request, "otp.html")
         else:
             messages.info(request, "Internal error")
             return render(request, "loginpage")
+        return render(request, "otp.html")
 
 
-@login_required(login_url="loginpage")
-def homepage(request):
-    return render(request, "home.html")
+class HomePage(View):
+
+    def get(self, request):
+        president = models.Candidate.objects.filter(post__name="President").all()
+        vice_president = models.Candidate.objects.filter(
+            post__name="Vice President"
+        ).all()
+        treasurer = models.Candidate.objects.filter(post__name="Treasurer").all()
+        secretary = models.Candidate.objects.filter(post__name="Secretary").all()
+        joint_secretary = models.Candidate.objects.filter(
+            post__name="Joint Secretary"
+        ).all()
+        member = models.Candidate.objects.filter(post__name="Member").all()
+
+        president_data = [{"name": p.name, "photo": p.photo} for p in president]
+        vice_president_data = [
+            {"name": vp.name, "photo": vp.photo} for vp in vice_president
+        ]
+
+        treasurer_data = [{"name": t.name, "photo": t.photo} for t in treasurer]
+        secretarydata = [{"name": s.name, "photo": s.photo} for s in secretary]
+        joint_secretarydata = [
+            {"name": js.name, "photo": js.photo} for js in joint_secretary
+        ]
+        member_data = [{"name": m.name, "photo": m.photo} for m in member]
+
+        data = {
+            "president": president_data,
+            "vice_president": vice_president_data,
+            "treasurer": treasurer_data,
+            "secretary": secretarydata,
+            "joint_secretary": joint_secretarydata,
+            "member": member_data,
+        }
+
+        dataJSON = dumps(data)
+        print(dataJSON)
+        return render(request, "mainpage.html", {"data": dataJSON})
+
+    def post(self, request):
+        print("This is post method")
