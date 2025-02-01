@@ -4,14 +4,15 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.views import View
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 
 from datetime import datetime
 import pyotp
+from json import dumps
 
 from .forms import CreateUserForm
 from .utils import send_otp
-
-from json import dumps
 
 # vote form
 from . import models
@@ -52,7 +53,9 @@ class Register(View):
             return redirect("loginpage")
         except:
             if form.is_valid():
-                form.save()
+                user = form.save()
+                voter = models.Voter(voter=user)
+                voter.save()
                 return redirect("loginpage")
             else:
                 errors = {"errors": form.errors}  # FORM IS INVALID
@@ -157,5 +160,6 @@ class HomePage(View):
         print(dataJSON)
         return render(request, "mainpage.html", {"data": dataJSON})
 
+    # @csrf_exempt
     def post(self, request):
         print("This is post method")

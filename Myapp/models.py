@@ -2,11 +2,15 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.conf import settings
 
+
 # Create your models here.
 class Voter(models.Model):
     voter = models.OneToOneField(to=User, on_delete=models.CASCADE)
     is_voted = models.BooleanField(default=False)
     voted_time = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.voter.username
 
 
 class Candidate(models.Model):
@@ -28,6 +32,3 @@ class Post(models.Model):
 
     def __str__(self):
         return self.name
-
-
- 
