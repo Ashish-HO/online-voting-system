@@ -38,10 +38,12 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "corsheaders",  # installed
     "Myapp",
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -136,3 +138,6 @@ EMAIL_HOST_USER = "forstiker1@gmail.com"
 EMAIL_HOST_PASSWORD = "fjze roji fyyt bscx"
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
+
+
+CORS_ALLOW_ALL_ORIGINS = True

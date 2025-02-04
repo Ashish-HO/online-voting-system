@@ -81,7 +81,62 @@ body {
 .content.collapsed {
   margin-left: 70px;
 }
+.popup {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 300px;
+  height: 200px;
+  background-color: white;
+  border: 1px solid #ccc;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  padding: 20px;
+  z-index: 1000;
+  border-radius: 10px;
+}
 
+.popup-content {
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  animation: slideIn 0.5s ease-out;
+}
+
+/* Zoom-in Animation */
+@keyframes slideIn {
+  from {
+    transform: translateY(-50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.popup.show {
+  display: block;
+  animation: zoomIn 0.3s ease-out;
+}
+
+/* Button Styles */
+#seeMyVotesBtn {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 20px;
+}
+
+#seeMyVotesBtn:hover {
+  background-color: #45a049;
+}
 body {
   font-family: Arial, sans-serif;
   margin: 0;

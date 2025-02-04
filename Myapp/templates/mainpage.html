@@ -1,4 +1,4 @@
-{% load static %}
+{% load static%}
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -8,18 +8,19 @@
     />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Voting System</title>
-    <link rel="stylesheet" href="{% static 'style.css' %}" />
+    <title>voting system</title>
+    <link rel="stylesheet" href="{% static "style.css" %}" />
+   
   </head>
   <body>
     <div class="sidebar" id="sidebar">
       <div class="toggle" id="toggleBtn">☰</div>
-      <a class="options" href="#"><span>Vote</span></a>
+      <a class="options" href="#"><span>Vote </span></a>
       <a class="options" href="#"><span>Post</span></a>
-      <a class="logout" href="{% url 'logoutpage' %}"
+      <a class="logout" href="{% url "loginpage" %}"
         ><span
           ><i class="fa fa-power-off" style="font-size: 12px"></i
-          >&nbsp;Logout</span
+          >&nbsp;logout</span
         ></a
       >
     </div>
@@ -36,29 +37,39 @@
     </div>
     <div id="results"></div>
     <div class="user-id-display">
-      <span>Welcome,</span>
-      <span id="userId">User12345</span>
+      <span>Welcome ,</span>
+      <span id="userId">User12345 <style='font-size:24px' class='fas'>&#xf406;</style></span>
     </div>
 
-    <script id="data-id">
+    <div id="thankYouPopup" class="popup">
+      <div class="popup-content">
+        <h2>Thank You!</h2>
+        <p>You have successfully voted.</p>
+        <button id="seeMyVotesBtn">My Votes</button>
+      </div>
+    </div>
+    <script
+      src="https://kit.fontawesome.com/a076d05399.js"
+      crossorigin="anonymous"
+    ></script> 
+    <script  >
       const data = {{ data|safe }};
-
-      const President = data['president'];
-      const VicePresident = data['vice_president']; // Assuming you have a similar array for Vice-President
-      const Secretary = data['secretary']; // Assuming you have a similar array for Secretary
-      const JointSecretary = data['joint_secretary']; // Assuming you have a similar array for Joint Secretary
-      const Treasurer=data['treasurer']
-      const Member = data['member']; // Assuming you have a similar array for Member
-
+      
       const sidebar = document.getElementById("sidebar");
       const content = document.getElementById("content");
       const toggleBtn = document.getElementById("toggleBtn");
-
+      
       toggleBtn.addEventListener("click", () => {
         sidebar.classList.toggle("collapsed");
         content.classList.toggle("collapsed");
       });
 
+      const President = data['president'];
+      const VicePresident = data['vice_president'];
+      const Secretary = data['secretary'];
+      const Treasurer = data['treasurer'];
+      const Member = data['member'];
+  
       const positions = [
         {
           title: "President",
@@ -69,15 +80,11 @@
           candidates: [],
         },
         {
-          title: "Secretary",
-          candidates: [],
-        },
-        {
-          title: "Joint Secretary",
-          candidates: [],
-        },
-        {
           title: "Treasurer",
+          candidates: [],
+        },
+        {
+          title: "Secretary",
           candidates: [],
         },
         {
@@ -100,58 +107,50 @@
           photo: VicePresident[i].photo,
         });
       }
-
-      for (let i = 0; i < Secretary.length; i++) {
-        positions[2].candidates.push({
-          name: Secretary[i].name,
-          photo: Secretary[i].photo,
-        });
-      }
-      for (let i = 0; i < JointSecretary.length; i++) {
-        positions[3].candidates.push({
-          name: JointSecretary[i].name,
-          photo: JointSecretary[i].photo,
-        });
-      }
-
       for (let i = 0; i < Treasurer.length; i++) {
-        positions[4].candidates.push({
+        positions[2].candidates.push({
           name: Treasurer[i].name,
           photo: Treasurer[i].photo,
         });
       }
 
+      for (let i = 0; i < Secretary.length; i++) {
+        positions[3].candidates.push({
+          name: Secretary[i].name,
+          photo: Secretary[i].photo,
+        });
+      }
 
       for (let i = 0; i < Member.length; i++) {
-        positions[5].candidates.push({
+        positions[4].candidates.push({
           name: Member[i].name,
           photo: Member[i].photo,
         });
       }
 
       const positionsContainer = document.getElementById("positions");
-
+      
       positions.forEach((position) => {
         const positionDiv = document.createElement("div");
         positionDiv.classList.add("position");
         const positionTitle = document.createElement("h2");
         positionTitle.textContent = position.title;
         positionDiv.appendChild(positionTitle);
-
+      
         const candidatesDiv = document.createElement("div");
         candidatesDiv.classList.add("candidates");
-
+      
         position.candidates.forEach((candidate) => {
           const candidateDiv = document.createElement("div");
           candidateDiv.classList.add("candidate");
           candidateDiv.innerHTML = `
             <img src="${candidate.photo}" alt="${candidate.name}" style="width:80px; height:80px; border-radius:50%;">
             <h3>${candidate.name}</h3>`;
-
+      
           candidateDiv.addEventListener("click", () => {
             // Toggle the "active" class for individual candidates
             candidateDiv.classList.toggle("active");
-
+      
             // Ensure only one candidate per position has the "active" class
             Array.from(candidatesDiv.children).forEach((child) => {
               if (child !== candidateDiv) {
@@ -161,23 +160,27 @@
           });
           candidatesDiv.appendChild(candidateDiv);
         });
-
+      
         positionDiv.appendChild(candidatesDiv);
         positionsContainer.appendChild(positionDiv);
       });
-
+      
       // Process votes on Submit button click
       const submitBtn = document.getElementById("submitVotes");
       const resultsContainer = document.getElementById("results");
-
+      
       submitBtn.addEventListener("click", () => {
         const votes = {};
-
+      
+        thankYouPopup.classList.add("show");
+        seeMyVotesBtn.addEventListener("click", () => {
+          window.location.href = "{% url 'result' %}";  //add url here
+        });
         // Loop through positions and extract active candidates
         document.querySelectorAll(".position").forEach((positionDiv) => {
           const positionTitle = positionDiv.querySelector("h2").textContent;
           const activeCandidate = positionDiv.querySelector(".candidate.active");
-
+      
           if (activeCandidate) {
             const candidateName = activeCandidate.querySelector("h3").textContent;
             const candidatePhoto = activeCandidate.querySelector("img").src;
@@ -186,7 +189,8 @@
             votes[positionTitle] = { name: "No vote cast", photo: "" };
           }
         });
-
+        console.log("Votes:", votes);
+        localStorage.setItem("votes", JSON.stringify(votes));
         // Clear and display results dynamically in the results container
         resultsContainer.innerHTML = "<h3>Results</h3>";
         for (const [position, { name, photo }] of Object.entries(votes)) {
@@ -199,16 +203,23 @@
                   : ""
               }
               <p>${name}</p>
+              
             </div>`;
         }
-        console.log("Votes:", votes);
       });
-
+      
       document.addEventListener("DOMContentLoaded", () => {
         const userIdElement = document.getElementById("userId");
         const userId = "Sarad2025";
         if (userIdElement) userIdElement.textContent = userId;
       });
-    </script>
+      
+      const thankYouPopup = document.getElementById("thankYouPopup");
+      const seeMyVotesBtn = document.getElementById("seeMyVotesBtn");
+      
+      // Redirect to results page when "See My Votes" is clicked
+      
+  </script>
+    
   </body>
 </html>

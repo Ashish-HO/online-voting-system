@@ -8,6 +8,7 @@ django = "*"
 pyotp = "*"
 pillow = "*"
 mysqlclient = "*"
+django-cors-headers = "*"
 
 [dev-packages]
 

@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 from django.views import View
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 
 from datetime import datetime
 import pyotp
@@ -16,6 +17,10 @@ from .utils import send_otp
 
 # vote form
 from . import models
+
+
+def showvote(request):
+    return render(request, "showvote.html")
 
 
 # Create your views here.
@@ -84,10 +89,12 @@ class LoginPage(View):
         return redirect("loginpage")
 
 
-class otp(View):
+class OtpView(View):
 
     def get(self, request):
-        return render(request, "otp.html")
+        username = request.session["username"]
+        email = models.User.objects.get(username=username).email
+        return render(request, "otp.html", {"email": email})
 
     def post(self, request):
         otp = request.POST.get("otp")
@@ -102,9 +109,9 @@ class otp(View):
             valid_until = datetime.fromisoformat(valid_date)
 
             if valid_until > datetime.now():
-                totp = pyotp.TOTP(otp_secret, interval=60)
+                totp = pyotp.TOTP(otp_secret, interval=300)
 
-                if pyotp.TOTP(otp_secret, interval=60).verify(otp):
+                if pyotp.TOTP(otp_secret, interval=300).verify(otp):
                     user = get_object_or_404(User, username=username)
                     login(request, user)
 
@@ -121,6 +128,7 @@ class otp(View):
         return render(request, "otp.html")
 
 
+# @method_decorator(login_required(login_url="loginpage"), name="dispatch")
 class HomePage(View):
 
     def get(self, request):
@@ -160,6 +168,84 @@ class HomePage(View):
         print(dataJSON)
         return render(request, "mainpage.html", {"data": dataJSON})
 
-    # @csrf_exempt
+    @csrf_exempt
     def post(self, request):
+        data = request.POST.get("data")
+        print(data)
         print("This is post method")
+        return render(request, "result.html")
+
+
+def result(request):
+    return render(request, "result.html")
+
+
+"""
+class CandidateAdd(View):
+
+    def get(self, request):
+        data = models.Candidate.objects.all()
+        return render(request, "Addcandidate.html", {"data": data})
+
+    def post(self, request):
+        form = CandidateAddForm(request.POST)
+
+        if form.is_valid():
+            form.save()
+            message = "Candidated added successfully."
+            return render(request, "Addcandidate.html", {"message": message})
+        else:
+            error = form.errors
+            return render(request, "Addcandidate.html", {"error": error})
+
+    def delete(self, request, candidate_id):
+        candidate = get_object_or_404(models.Candidate, id=candidate_id)
+        candidate.delete()
+        message = f"{post_id} successfully deleted."
+        return render(request, "Addcandidate.html", {"message": message})
+
+    def patch(self,request,candidate_id):
+        post=get_object_or_404(models.Candidate,id=candidate_id)
+        form=CandidateAddForm(request.POST,instance=post)
+
+        if form.is_valid():
+            form.save()
+            message="Update successfully."
+            return render(request,"Addcandidate.html",{"message":message})
+        return render(request,"Addcandidate.html",{"error":form.errors})
+
+
+
+class PostAdd(View):
+
+    def get(self, request): #read method
+        data = models.Post.objects.all() #get all the objects of post
+        return render(request, "Addpost.html", {"data": data})
+
+    def post(self, request): # Create method
+        form = PostAddForm(request.POST) #get entered data 
+
+        if form.is_valid():
+            form.save() #data saved to database
+            message = "Post added successfully."
+            return render(request, "Addpost.html", {"message": message})
+        else:
+            error = form.errors
+            return render(request, "Addpost.html", {"error": error})
+
+    def delete(self, request, post_id): #delete method 
+        post = get_object_or_404(models.Post, id=post_id) #get specific post to delete
+        post.delete()
+        message = f"{post_id} successfully deleted."
+        return render(request, "Addpost.html", {"message": message})
+
+    def patch(self,request,post_id): #update specific post
+        post=get_object_or_404(models.Post,id=post_id) 
+        form=PostAddForm(request.POST,instance=post) #update post with new data
+
+        if form.is_valid():
+            form.save()
+            message="Update successfully."
+            return render(request,"Addpost.html",{"message":message})
+        return render(request,"Addpost.html",{"error":form.errors})
+"""

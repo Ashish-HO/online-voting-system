@@ -5,7 +5,7 @@ from django.conf import settings
 
 
 def send_otp(request, email):
-    totp = pyotp.TOTP(pyotp.random_base32(), interval=60)  # in the encoded form
+    totp = pyotp.TOTP(pyotp.random_base32(), interval=300)  # in the encoded form
     otp = totp.now()
     print(type(otp))
     request.session["otp_secret"] = totp.secret
