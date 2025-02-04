@@ -8,6 +8,7 @@
     />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="csrf-token" content="{{ csrf_token }}">
     <title>voting system</title>
     <link rel="stylesheet" href="{% static "style.css" %}" />
    
@@ -188,6 +189,7 @@
           } else {
             votes[positionTitle] = { name: "No vote cast", photo: "" };
           }
+
         });
         console.log("Votes:", votes);
         localStorage.setItem("votes", JSON.stringify(votes));
@@ -206,8 +208,27 @@
               
             </div>`;
         }
-      });
-      
+            fetch("{% url 'result' %}", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": "{{ csrf_token }}", // Include CSRF token for security
+              },
+              body: JSON.stringify({ votes: votes, userId: "User12345" }), // Include userId if needed
+            })
+              .then((response) => response.json())
+              .then((data) => {
+                if (data.success) {
+                  // Show thank you popup on successful submission
+                  thankYouPopup.classList.add("show");
+                } else {
+                  alert("Failed to submit votes. Please try again.");
+                }
+              })
+              
+          });
+        
+
       document.addEventListener("DOMContentLoaded", () => {
         const userIdElement = document.getElementById("userId");
         const userId = "Sarad2025";

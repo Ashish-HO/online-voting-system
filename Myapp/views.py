@@ -10,7 +10,7 @@ from django.utils.decorators import method_decorator
 
 from datetime import datetime
 import pyotp
-from json import dumps
+from json import dumps, loads
 
 from .forms import CreateUserForm
 from .utils import send_otp
@@ -177,6 +177,21 @@ class HomePage(View):
 
 
 def result(request):
+    if request.method == "POST":
+        data = loads(request.body)
+        print("______________________________________________________")
+        votes = data["votes"]
+        print(votes)
+        print("______________________________________________________")
+
+        for v in votes:
+            post = v
+            candidate_name = votes[post]["name"]
+            candidate = models.Candidate.objects.get(name=candidate_name)
+            candidate.votes += 1
+            candidate.save()
+            print(f"{post} {candidate_name}", end="/n")
+
     return render(request, "result.html")
 
 

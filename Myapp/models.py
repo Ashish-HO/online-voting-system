@@ -19,7 +19,7 @@ class Candidate(models.Model):
     phone = models.IntegerField()
     email = models.EmailField()
     description = models.TextField()
-    votes = models.IntegerField(default=0, editable=False)
+    votes = models.IntegerField(default=0, editable=True)
     post = models.ForeignKey(to="Post", on_delete=models.CASCADE)
 
     def __str__(self):
