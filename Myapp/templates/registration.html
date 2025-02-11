@@ -70,7 +70,8 @@
                 />
               </div>
               <!-- otp input -->
-              {% comment %} <label class="form-label" for="form3Example3"
+              {% comment %}
+              <label class="form-label" for="form3Example3"
                 >Email address</label
               >
 
@@ -82,7 +83,8 @@
                   name="email"
                   placeholder="Enter your email address here."
                 />
-              </div> {% endcomment %}
+              </div>
+              {% endcomment %}
 
               <label class="form-label" for="form3Example3"
                 >Create Password</label
@@ -95,7 +97,17 @@
                   name="password1"
                   placeholder="Create new password"
                 />
+                <small id="emailHelp" class="form-text text-muted">
+                  Your password can't be too similar to your username.
+                  </br>
+                  Your password must contain at least 8 characters.
+                  </br>
+                  Your password can't be a commonly used password.
+                </br>
+                Your password can't be entirely numeric.
+                </small>
               </div>
+              
 
               <label class="form-label" for="form3Example3"
                 >confirm password</label
@@ -108,9 +120,11 @@
                   name="password2"
                   placeholder="confirm your password"
                 />
+                <br />
+                {%for error in errors%}
+                <div class="alert alert-danger" role="alert">
+                  <p>{{errors.password2}}</p>
               </div>
-              {%for error in errors%}
-              <p>{{errors}}</p>
               {%endfor%}
 
               <div class="text-center text-lg-start mt-4 pt-2">

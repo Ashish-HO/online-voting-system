@@ -64,9 +64,8 @@ class Register(View):
                 return redirect("loginpage")
             else:
                 errors = {"errors": form.errors}  # FORM IS INVALID
-        return render(
-            request, "registration.html", self.errors
-        )  # SHOW REGISTRATION PAGE WITH ERRORS
+                print(errors)
+        return render(request, "registration.html", {"errors": form.errors})
 
 
 class LoginPage(View):
@@ -115,8 +114,8 @@ class OtpView(View):
                     user = get_object_or_404(User, username=username)
                     login(request, user)
 
-                    del request.session["otp_secret"]
-                    del request.session["otp_valid_date"]
+                    # del request.session["otp_secret"]
+                    # del request.session["otp_valid_date"]
                     return redirect("homepage")
                 else:
                     messages.info(request, "Invalid OTP")
@@ -132,9 +131,13 @@ class OtpView(View):
 class HomePage(View):
 
     def get(self, request):
-        voter_id = models.User.objects.get(username=request.user).id #get the id of voter who submit the vote
-       
-        if  not models.Voter.objects.get(voter_id=voter_id).is_voted:   #check if voter has voted or not
+        voter_id = models.User.objects.get(
+            username=request.user
+        ).id  # get the id of voter who submit the vote
+
+        if not models.Voter.objects.get(
+            voter_id=voter_id
+        ).is_voted:  # check if voter has voted or not
             president = models.Candidate.objects.filter(post__name="President").all()
             vice_president = models.Candidate.objects.filter(
                 post__name="Vice President"
@@ -185,8 +188,12 @@ class HomePage(View):
 
 def result(request):
     if request.method == "POST":
-        voter_id = models.User.objects.get(username=request.user).id #get the id of voter who submit the vote
-        models.Voter.objects.filter(voter_id=voter_id).update(is_voted=True)  #makes the is_voted to True 
+        voter_id = models.User.objects.get(
+            username=request.user
+        ).id  # get the id of voter who submit the vote
+        models.Voter.objects.filter(voter_id=voter_id).update(
+            is_voted=True
+        )  # makes the is_voted to True
 
         data = loads(request.body)
         votes = data["votes"]

@@ -141,3 +141,7 @@ EMAIL_USE_SSL = False
 
 
 CORS_ALLOW_ALL_ORIGINS = True
+
+SESSION_COOKIE_SECURE = True  # Only send cookies over HTTPS
+SESSION_COOKIE_HTTPONLY = True  # Prevent access to session cookies via JavaScript
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # Expire sessions when the browser is closed
