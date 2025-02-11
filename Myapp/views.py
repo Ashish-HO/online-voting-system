@@ -132,41 +132,48 @@ class OtpView(View):
 class HomePage(View):
 
     def get(self, request):
-        president = models.Candidate.objects.filter(post__name="President").all()
-        vice_president = models.Candidate.objects.filter(
-            post__name="Vice President"
-        ).all()
-        treasurer = models.Candidate.objects.filter(post__name="Treasurer").all()
-        secretary = models.Candidate.objects.filter(post__name="Secretary").all()
-        joint_secretary = models.Candidate.objects.filter(
-            post__name="Joint Secretary"
-        ).all()
-        member = models.Candidate.objects.filter(post__name="Member").all()
+        voter_id = models.User.objects.get(username=request.user).id #get the id of voter who submit the vote
+       
+        if  not models.Voter.objects.get(voter_id=voter_id).is_voted:   #check if voter has voted or not
+            president = models.Candidate.objects.filter(post__name="President").all()
+            vice_president = models.Candidate.objects.filter(
+                post__name="Vice President"
+            ).all()
+            treasurer = models.Candidate.objects.filter(post__name="Treasurer").all()
+            secretary = models.Candidate.objects.filter(post__name="Secretary").all()
+            joint_secretary = models.Candidate.objects.filter(
+                post__name="Joint Secretary"
+            ).all()
+            member = models.Candidate.objects.filter(post__name="Member").all()
 
-        president_data = [{"name": p.name, "photo": p.photo} for p in president]
-        vice_president_data = [
-            {"name": vp.name, "photo": vp.photo} for vp in vice_president
-        ]
+            president_data = [{"name": p.name, "photo": p.photo} for p in president]
+            vice_president_data = [
+                {"name": vp.name, "photo": vp.photo} for vp in vice_president
+            ]
 
-        treasurer_data = [{"name": t.name, "photo": t.photo} for t in treasurer]
-        secretarydata = [{"name": s.name, "photo": s.photo} for s in secretary]
-        joint_secretarydata = [
-            {"name": js.name, "photo": js.photo} for js in joint_secretary
-        ]
-        member_data = [{"name": m.name, "photo": m.photo} for m in member]
+            treasurer_data = [{"name": t.name, "photo": t.photo} for t in treasurer]
+            secretarydata = [{"name": s.name, "photo": s.photo} for s in secretary]
+            joint_secretarydata = [
+                {"name": js.name, "photo": js.photo} for js in joint_secretary
+            ]
+            member_data = [{"name": m.name, "photo": m.photo} for m in member]
 
-        data = {
-            "president": president_data,
-            "vice_president": vice_president_data,
-            "treasurer": treasurer_data,
-            "secretary": secretarydata,
-            "joint_secretary": joint_secretarydata,
-            "member": member_data,
-        }
+            data = {
+                "president": president_data,
+                "vice_president": vice_president_data,
+                "treasurer": treasurer_data,
+                "secretary": secretarydata,
+                "joint_secretary": joint_secretarydata,
+                "member": member_data,
+            }
 
-        dataJSON = dumps(data)
-        print(dataJSON)
-        return render(request, "mainpage.html", {"data": dataJSON})
+            dataJSON = dumps(data)
+            print(dataJSON)
+            return render(request, "mainpage.html", {"data": dataJSON})
+
+        else:
+            message = "You have already voted."
+            return render(request, "result.html", {"message": message})
 
     @csrf_exempt
     def post(self, request):
@@ -178,12 +185,11 @@ class HomePage(View):
 
 def result(request):
     if request.method == "POST":
-        data = loads(request.body)
-        print("______________________________________________________")
-        votes = data["votes"]
-        print(votes)
-        print("______________________________________________________")
+        voter_id = models.User.objects.get(username=request.user).id #get the id of voter who submit the vote
+        models.Voter.objects.filter(voter_id=voter_id).update(is_voted=True)  #makes the is_voted to True 
 
+        data = loads(request.body)
+        votes = data["votes"]
         for v in votes:
             post = v
             candidate_name = votes[post]["name"]

@@ -39,7 +39,7 @@
     <div id="results"></div>
     <div class="user-id-display">
       <span>Welcome ,</span>
-      <span id="userId">User12345 <style='font-size:24px' class='fas'>&#xf406;</style></span>
+      <span id="userId">{{request.user}} <style='font-size:24px' class='fas'>&#xf406;</style></span>
     </div>
 
     <div id="thankYouPopup" class="popup">
@@ -208,13 +208,13 @@
               
             </div>`;
         }
-            fetch("{% url 'result' %}", {
+            fetch("{% url 'yourvote' %}", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
                 "X-CSRFToken": "{{ csrf_token }}", // Include CSRF token for security
               },
-              body: JSON.stringify({ votes: votes, userId: "User12345" }), // Include userId if needed
+              body: JSON.stringify({ votes: votes }), // Include userId if needed
             })
               .then((response) => response.json())
               .then((data) => {
