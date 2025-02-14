@@ -231,7 +231,7 @@
 
       document.addEventListener("DOMContentLoaded", () => {
         const userIdElement = document.getElementById("userId");
-        const userId = "Sarad2025";
+        const userId = "{{request.user}}";
         if (userIdElement) userIdElement.textContent = userId;
       });
       

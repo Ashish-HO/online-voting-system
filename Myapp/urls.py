@@ -8,5 +8,6 @@ urlpatterns = [
     path("OtpView/", views.OtpView.as_view(), name="otp"),
     path("logout/", views.LogoutPage, name="logoutpage"),
     path("home/", views.HomePage.as_view(), name="homepage"),
-    path("home/result/", views.result, name="yourvote"),
+    path("home/result/", views.voterresult, name="yourvote"),
+    path("result",views.candidateresult,name="result")
 ]

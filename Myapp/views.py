@@ -135,8 +135,8 @@ class HomePage(View):
             username=request.user
         ).id  # get the id of voter who submit the vote
 
-        if not models.Voter.objects.get(
-            voter_id=voter_id
+        if not (
+            get_object_or_404(models.Voter, voter_id=voter_id)
         ).is_voted:  # check if voter has voted or not
             president = models.Candidate.objects.filter(post__name="President").all()
             vice_president = models.Candidate.objects.filter(
@@ -176,17 +176,17 @@ class HomePage(View):
 
         else:
             message = "You have already voted."
-            return render(request, "result.html", {"message": message})
+            return render(request, "voterresult.html", {"message": message})
 
     @csrf_exempt
     def post(self, request):
         data = request.POST.get("data")
         print(data)
         print("This is post method")
-        return render(request, "result.html")
+        return render(request, "voterresult.html")
 
 
-def result(request):
+def voterresult(request):
     if request.method == "POST":
         voter_id = models.User.objects.get(
             username=request.user
@@ -206,6 +206,56 @@ def result(request):
             print(f"{post} {candidate_name}", end="/n")
 
     return render(request, "result.html")
+
+
+def candidateresult(request):
+    if request.method == "GET":
+        president = models.Candidate.objects.filter(post__name="President").all()
+        vice_president = models.Candidate.objects.filter(
+            post__name="Vice President"
+        ).all()
+        treasurer = models.Candidate.objects.filter(post__name="Treasurer").all()
+        secretary = models.Candidate.objects.filter(post__name="Secretary").all()
+        joint_secretary = models.Candidate.objects.filter(
+            post__name="Joint Secretary"
+        ).all()
+        member = models.Candidate.objects.filter(post__name="Member").all()
+
+        president_data = [
+            {"name": p.name, "photo": p.photo, "votes": p.votes} for p in president
+        ]
+        vice_president_data = [
+            {"name": vp.name, "photo": vp.photo, "votes": vp.votes}
+            for vp in vice_president
+        ]
+
+        treasurer_data = [
+            {"name": t.name, "photo": t.photo, "votes": t.votes} for t in treasurer
+        ]
+        secretarydata = [
+            {"name": s.name, "photo": s.photo, "votes": s.votes} for s in secretary
+        ]
+        joint_secretarydata = [
+            {"name": js.name, "photo": js.photo, "votes": js.votes}
+            for js in joint_secretary
+        ]
+        member_data = [
+            {"name": m.name, "photo": m.photo, "votes": m.votes} for m in member
+        ]
+
+        data = {
+            "president": president_data,
+            "vice_president": vice_president_data,
+            "treasurer": treasurer_data,
+            "secretary": secretarydata,
+            "joint_secretary": joint_secretarydata,
+            "member": member_data,
+        }
+
+        dataJSON = dumps(data)
+        print(dataJSON)
+        pass
+    return render(request, "candidateresult.html")
 
 
 """
