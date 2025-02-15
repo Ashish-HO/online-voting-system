@@ -5,7 +5,17 @@ from django.contrib.auth.models import User
 
 from . import models
 
+# core/urls.py
+
+admin.site.site_title = "Online voting systemsite admin"
+admin.site.site_header = "Online Voting System Administration"
+admin.site.index_title = "Site Administration"
+admin.site.site_url = "/"
+admin.site.enable_nav_sidebar = True
+admin.site.empty_value_display = "-"
+
 admin.site.register(models.Post)
+admin.site.register(models.ElectionSetting)
 
 
 @admin.register(models.Candidate)

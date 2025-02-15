@@ -175,7 +175,7 @@
       
         thankYouPopup.classList.add("show");
         seeMyVotesBtn.addEventListener("click", () => {
-          window.location.href = "{% url 'result' %}";  //add url here
+          window.location.href = "{% url 'yourvote' %}";  //add url here
         });
         // Loop through positions and extract active candidates
         document.querySelectorAll(".position").forEach((positionDiv) => {

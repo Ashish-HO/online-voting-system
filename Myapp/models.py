@@ -2,7 +2,9 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.conf import settings
 from django.core.validators import MinValueValidator
-from datetime import date
+from datetime import date, timedelta
+from django.utils import timezone
+from django.core.exceptions import ValidationError
 
 
 # Create your models here.
@@ -38,9 +40,8 @@ class Post(models.Model):
 
 class ElectionSetting(models.Model):
     title = models.CharField(max_length=255)
-    startdate = models.DateTimeField(
-        validators=[MinValueValidator(limit_value=date.today())]
-    )
-    enddate = models.DateTimeField(
-        validators=[MinValueValidator(limit_value=date.today())]
-    )
+    startdate = models.DateField(default=date.today())
+    enddate = models.DateField(default=date.today() + timedelta(days=1))
+
+    def __str__(self):
+        return self.title

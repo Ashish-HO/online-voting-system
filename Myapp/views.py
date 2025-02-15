@@ -176,7 +176,7 @@ class HomePage(View):
 
         else:
             message = "You have already voted."
-            return render(request, "voterresult.html", {"message": message})
+            return render(request, "candidateresult.html", {"message": message})
 
     @csrf_exempt
     def post(self, request):
@@ -205,7 +205,7 @@ def voterresult(request):
             candidate.save()
             print(f"{post} {candidate_name}", end="/n")
 
-    return render(request, "result.html")
+    return render(request, "voterresult.html")
 
 
 def candidateresult(request):
@@ -274,6 +274,7 @@ class CandidateAdd(View):
             return render(request, "Addcandidate.html", {"message": message})
         else:
             error = form.errors
+            
             return render(request, "Addcandidate.html", {"error": error})
 
     def delete(self, request, candidate_id):
