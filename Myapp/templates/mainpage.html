@@ -26,6 +26,9 @@
         height: 80px;
         border-radius: 50%;
       }
+      .hide-voting-details {
+        display: none;
+      }
     </style>
   </head>
   <body>
@@ -60,7 +63,7 @@
     <div class="user-id-display">
       <span>Welcome,</span>
       <span id="userId"
-        >User12345
+        >{{request.user}}
         <style ="font-size:24px" class="fas">
           &#xf406;
         </style></span
@@ -134,6 +137,8 @@
 
       submitBtn.addEventListener("click", () => {
         const votes = {};
+        document.querySelector(".content").classList.add("hide-voting-details");
+
         thankYouPopup.classList.add("show");
 
         // Loop through positions and extract selected candidates
@@ -179,7 +184,6 @@
             "Content-Type": "application/json",
             "X-CSRFToken": "{{ csrf_token }}", // Include CSRF token for security
           },
-          
         })
           .then((response) => response.json())
           .then((data) => {

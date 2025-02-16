@@ -131,7 +131,7 @@ class OtpView(View):
         return render(request, "otp.html")
 
 
-# @method_decorator(login_required(login_url="loginpage"), name="dispatch")
+@method_decorator(login_required(login_url="loginpage"), name="dispatch")
 class HomePage(View):
 
     def get(self, request):
@@ -157,7 +157,7 @@ class HomePage(View):
 
         else:
             message = "You have already voted."
-            return render(request, "candidateresult.html", {"message": message})
+            return render(request, "resultsoon.html", {"message": message})
 
     @csrf_exempt
     def post(self, request):
@@ -172,9 +172,9 @@ def voterresult(request):
         voter_id = models.User.objects.get(
             username=request.user
         ).id  # get the id of voter who submit the vote
-        # models.Voter.objects.filter(voter_id=voter_id).update(
-        #     is_voted=True
-        # )  # makes the is_voted to True
+        models.Voter.objects.filter(voter_id=voter_id).update(
+            is_voted=True
+        )  # makes the is_voted to True
 
         data = loads(request.body)
         print(data)
@@ -191,53 +191,17 @@ def voterresult(request):
 
 
 def candidateresult(request):
-    # if request.method == "GET":
-    #     president = models.Candidate.objects.filter(post__name="President").all()
-    #     vice_president = models.Candidate.objects.filter(
-    #         post__name="Vice President"
-    #     ).all()
-    #     treasurer = models.Candidate.objects.filter(post__name="Treasurer").all()
-    #     secretary = models.Candidate.objects.filter(post__name="Secretary").all()
-    #     joint_secretary = models.Candidate.objects.filter(
-    #         post__name="Joint Secretary"
-    #     ).all()
-    #     member = models.Candidate.objects.filter(post__name="Member").all()
+    positions = models.Post.objects.all()
+    data = {}
 
-    #     president_data = [
-    #         {"name": p.name, "photo": p.photo, "votes": p.votes} for p in president
-    #     ]
-    #     vice_president_data = [
-    #         {"name": vp.name, "photo": vp.photo, "votes": vp.votes}
-    #         for vp in vice_president
-    #     ]
-
-    #     treasurer_data = [
-    #         {"name": t.name, "photo": t.photo, "votes": t.votes} for t in treasurer
-    #     ]
-    #     secretarydata = [
-    #         {"name": s.name, "photo": s.photo, "votes": s.votes} for s in secretary
-    #     ]
-    #     joint_secretarydata = [
-    #         {"name": js.name, "photo": js.photo, "votes": js.votes}
-    #         for js in joint_secretary
-    #     ]
-    #     member_data = [
-    #         {"name": m.name, "photo": m.photo, "votes": m.votes} for m in member
-    #     ]
-
-    #     data = {
-    #         "president": president_data,
-    #         "vice_president": vice_president_data,
-    #         "treasurer": treasurer_data,
-    #         "secretary": secretarydata,
-    #         "joint_secretary": joint_secretarydata,
-    #         "member": member_data,
-    #     }
-
-    #     dataJSON = dumps(data)
-    #     print(dataJSON)
-    #     pass
-    return render(request, "candidateresult.html")
+    for position in positions:
+        candidates = models.Candidate.objects.filter(post=position)
+        data[position.name] = [
+            {"name": candidate.name, "photo": candidate.photo, "votes": candidate.votes}
+            for candidate in candidates
+        ]
+    dataJSON = dumps(data)
+    return render(request, "candidateresult.html", {"data": dataJSON})
 
 
 """
@@ -316,8 +280,10 @@ def request_password_reset(request):
     if request.method == "POST":
         username = (request.POST.get("username")).lower()
         try:
-            user = User.objects.get(username=username) #check id user id is valid or not
-            email = user.email   #get email from user
+            user = User.objects.get(
+                username=username
+            )  # check id user id is valid or not
+            email = user.email  # get email from user
         except User.DoesNotExist:
             return render(
                 request,
@@ -326,7 +292,9 @@ def request_password_reset(request):
             )
 
         # Create a new reset token
-        reset_token = PasswordResetToken.objects.create(user=user) #generate token for user
+        reset_token = PasswordResetToken.objects.create(
+            user=user
+        )  # generate token for user
 
         # Generate reset link
         reset_url = f"{request.scheme}://{request.get_host()}/reset-password/{reset_token.token}/"

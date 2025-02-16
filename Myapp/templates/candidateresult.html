@@ -1,1 +1,111 @@
-<h1>This page is of candidates result</h1>
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Election Results</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="{% static 'style.css' %}" />
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        background-color: rgb(159, 219, 80);
+      }
+      .container {
+        width: 80%;
+        margin: 20px auto;
+        padding: 20px;
+        background: rgb(185, 221, 137);
+        border-radius: 8px;
+        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+      }
+      /* Flex container for chart columns */
+      #charts-container {
+        display: flex;
+        flex-wrap: wrap; /* Allow the charts to wrap to the next row if space is limited */
+        justify-content: space-around; /* Distribute the charts evenly */
+        gap: 20px; /* Add space between charts */
+      }
+      .chart-container {
+        flex: 1 1 45%; /* Ensure the charts take up equal space, 45% for two charts per row */
+        min-width: 300px; /* Prevent charts from getting too small */
+        margin-bottom: 40px;
+      }
+      canvas {
+        max-width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Online Voting Results</h1>
+      <div id="charts-container"></div>
+      <!-- Charts will be inserted here -->
+    </div>
+
+    <script>
+      // Parse JSON data from Django
+      const data = JSON.parse("{{ data|escapejs }}");
+
+      // Get container to insert charts
+      const chartsContainer = document.getElementById("charts-container");
+
+      // Loop through positions to generate separate charts
+      Object.entries(data).forEach(([position, candidates], index) => {
+        // Create a div for each chart
+        const chartDiv = document.createElement("div");
+        chartDiv.classList.add("chart-container");
+
+        // Create a heading for the position
+        const positionHeading = document.createElement("h2");
+        positionHeading.textContent = position;
+        chartDiv.appendChild(positionHeading);
+
+        // Create a canvas for the chart
+        const canvas = document.createElement("canvas");
+        canvas.id = `chart-${index}`;
+        chartDiv.appendChild(canvas);
+
+        // Append the chart div to the container
+        chartsContainer.appendChild(chartDiv);
+
+        // Extract candidate names and votes
+        const candidateNames = candidates.map((c) => c.name);
+        const votes = candidates.map((c) => c.votes);
+
+        // Generate the bar chart
+        new Chart(canvas, {
+          type: "bar",
+          data: {
+            labels: candidateNames,
+            datasets: [
+              {
+                label: "Total Votes",
+                data: votes,
+                backgroundColor: [
+                  "#3498db",
+                  "#e74c3c",
+                  "#2ecc71",
+                  "#f1c40f",
+                  "#9b59b6",
+                ],
+                borderColor: "#333",
+                borderWidth: 1,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            scales: {
+              y: {
+                beginAtZero: true,
+              },
+            },
+          },
+        });
+      });
+    </script>
+  </body>
+</html>
