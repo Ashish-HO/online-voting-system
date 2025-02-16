@@ -7,6 +7,9 @@ from django.views import View
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+from django.core.mail import send_mail
+from django.conf import settings
+from django.contrib.auth.hashers import make_password
 
 from datetime import datetime
 import pyotp
@@ -17,6 +20,7 @@ from .utils import send_otp
 
 # vote form
 from . import models
+from .models import PasswordResetToken
 
 
 def showvote(request):
@@ -138,40 +142,17 @@ class HomePage(View):
         if not (
             get_object_or_404(models.Voter, voter_id=voter_id)
         ).is_voted:  # check if voter has voted or not
-            president = models.Candidate.objects.filter(post__name="President").all()
-            vice_president = models.Candidate.objects.filter(
-                post__name="Vice President"
-            ).all()
-            treasurer = models.Candidate.objects.filter(post__name="Treasurer").all()
-            secretary = models.Candidate.objects.filter(post__name="Secretary").all()
-            joint_secretary = models.Candidate.objects.filter(
-                post__name="Joint Secretary"
-            ).all()
-            member = models.Candidate.objects.filter(post__name="Member").all()
 
-            president_data = [{"name": p.name, "photo": p.photo} for p in president]
-            vice_president_data = [
-                {"name": vp.name, "photo": vp.photo} for vp in vice_president
-            ]
+            positions = models.Post.objects.all()
+            data = {}
 
-            treasurer_data = [{"name": t.name, "photo": t.photo} for t in treasurer]
-            secretarydata = [{"name": s.name, "photo": s.photo} for s in secretary]
-            joint_secretarydata = [
-                {"name": js.name, "photo": js.photo} for js in joint_secretary
-            ]
-            member_data = [{"name": m.name, "photo": m.photo} for m in member]
-
-            data = {
-                "president": president_data,
-                "vice_president": vice_president_data,
-                "treasurer": treasurer_data,
-                "secretary": secretarydata,
-                "joint_secretary": joint_secretarydata,
-                "member": member_data,
-            }
-
+            for position in positions:
+                candidates = models.Candidate.objects.filter(post=position)
+                data[position.name] = [
+                    {"name": candidate.name, "photo": candidate.photo}
+                    for candidate in candidates
+                ]
             dataJSON = dumps(data)
-            print(dataJSON)
             return render(request, "mainpage.html", {"data": dataJSON})
 
         else:
@@ -191,16 +172,17 @@ def voterresult(request):
         voter_id = models.User.objects.get(
             username=request.user
         ).id  # get the id of voter who submit the vote
-        models.Voter.objects.filter(voter_id=voter_id).update(
-            is_voted=True
-        )  # makes the is_voted to True
+        # models.Voter.objects.filter(voter_id=voter_id).update(
+        #     is_voted=True
+        # )  # makes the is_voted to True
 
         data = loads(request.body)
+        print(data)
         votes = data["votes"]
         for v in votes:
             post = v
             candidate_name = votes[post]["name"]
-            candidate = models.Candidate.objects.get(name=candidate_name)
+            candidate = get_object_or_404(models.Candidate, name=candidate_name)
             candidate.votes += 1
             candidate.save()
             print(f"{post} {candidate_name}", end="/n")
@@ -209,52 +191,52 @@ def voterresult(request):
 
 
 def candidateresult(request):
-    if request.method == "GET":
-        president = models.Candidate.objects.filter(post__name="President").all()
-        vice_president = models.Candidate.objects.filter(
-            post__name="Vice President"
-        ).all()
-        treasurer = models.Candidate.objects.filter(post__name="Treasurer").all()
-        secretary = models.Candidate.objects.filter(post__name="Secretary").all()
-        joint_secretary = models.Candidate.objects.filter(
-            post__name="Joint Secretary"
-        ).all()
-        member = models.Candidate.objects.filter(post__name="Member").all()
+    # if request.method == "GET":
+    #     president = models.Candidate.objects.filter(post__name="President").all()
+    #     vice_president = models.Candidate.objects.filter(
+    #         post__name="Vice President"
+    #     ).all()
+    #     treasurer = models.Candidate.objects.filter(post__name="Treasurer").all()
+    #     secretary = models.Candidate.objects.filter(post__name="Secretary").all()
+    #     joint_secretary = models.Candidate.objects.filter(
+    #         post__name="Joint Secretary"
+    #     ).all()
+    #     member = models.Candidate.objects.filter(post__name="Member").all()
 
-        president_data = [
-            {"name": p.name, "photo": p.photo, "votes": p.votes} for p in president
-        ]
-        vice_president_data = [
-            {"name": vp.name, "photo": vp.photo, "votes": vp.votes}
-            for vp in vice_president
-        ]
+    #     president_data = [
+    #         {"name": p.name, "photo": p.photo, "votes": p.votes} for p in president
+    #     ]
+    #     vice_president_data = [
+    #         {"name": vp.name, "photo": vp.photo, "votes": vp.votes}
+    #         for vp in vice_president
+    #     ]
 
-        treasurer_data = [
-            {"name": t.name, "photo": t.photo, "votes": t.votes} for t in treasurer
-        ]
-        secretarydata = [
-            {"name": s.name, "photo": s.photo, "votes": s.votes} for s in secretary
-        ]
-        joint_secretarydata = [
-            {"name": js.name, "photo": js.photo, "votes": js.votes}
-            for js in joint_secretary
-        ]
-        member_data = [
-            {"name": m.name, "photo": m.photo, "votes": m.votes} for m in member
-        ]
+    #     treasurer_data = [
+    #         {"name": t.name, "photo": t.photo, "votes": t.votes} for t in treasurer
+    #     ]
+    #     secretarydata = [
+    #         {"name": s.name, "photo": s.photo, "votes": s.votes} for s in secretary
+    #     ]
+    #     joint_secretarydata = [
+    #         {"name": js.name, "photo": js.photo, "votes": js.votes}
+    #         for js in joint_secretary
+    #     ]
+    #     member_data = [
+    #         {"name": m.name, "photo": m.photo, "votes": m.votes} for m in member
+    #     ]
 
-        data = {
-            "president": president_data,
-            "vice_president": vice_president_data,
-            "treasurer": treasurer_data,
-            "secretary": secretarydata,
-            "joint_secretary": joint_secretarydata,
-            "member": member_data,
-        }
+    #     data = {
+    #         "president": president_data,
+    #         "vice_president": vice_president_data,
+    #         "treasurer": treasurer_data,
+    #         "secretary": secretarydata,
+    #         "joint_secretary": joint_secretarydata,
+    #         "member": member_data,
+    #     }
 
-        dataJSON = dumps(data)
-        print(dataJSON)
-        pass
+    #     dataJSON = dumps(data)
+    #     print(dataJSON)
+    #     pass
     return render(request, "candidateresult.html")
 
 
@@ -328,3 +310,61 @@ class PostAdd(View):
             return render(request,"Addpost.html",{"message":message})
         return render(request,"Addpost.html",{"error":form.errors})
 """
+
+
+def request_password_reset(request):
+    if request.method == "POST":
+        username = (request.POST.get("username")).lower()
+        try:
+            user = User.objects.get(username=username) #check id user id is valid or not
+            email = user.email   #get email from user
+        except User.DoesNotExist:
+            return render(
+                request,
+                "reset/password_reset_form.html",
+                {"message": "User doesn't exixt"},
+            )
+
+        # Create a new reset token
+        reset_token = PasswordResetToken.objects.create(user=user) #generate token for user
+
+        # Generate reset link
+        reset_url = f"{request.scheme}://{request.get_host()}/reset-password/{reset_token.token}/"
+
+        # Email content
+        subject = "Reset Your Password"
+        message = f"Click the link to reset your password: {reset_url}"
+
+        send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [email])
+
+        return render(request, "reset/PasswordResetDone.html")  # Show confirmation page
+
+    return render(request, "reset/password_reset_form.html")  # Render email input form
+
+
+def reset_password(request, token):
+    try:
+        reset_token = PasswordResetToken.objects.get(token=token)
+    except PasswordResetToken.DoesNotExist:
+        return render(request, "reset/invalid_token.html")  # Show invalid token message
+
+    if not reset_token.is_valid():
+
+        return render(request, "reset/expired_token.html")  # Show expired token message
+
+    if request.method == "POST":
+        new_password = request.POST.get("password1")
+        confirm_password = request.POST.get("password2")
+
+        user = reset_token.user
+        user.password = make_password(new_password)  # Hash password before saving
+        user.save()
+
+        reset_token.delete()  # Delete token after successful reset
+        return render(
+            request, "reset/PasswordResetComplete.html"
+        )  # Show success message
+
+    return render(
+        request, "reset/PasswordResetConfirm.html"
+    )  # Render password input form

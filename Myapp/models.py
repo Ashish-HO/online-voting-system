@@ -2,9 +2,13 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.conf import settings
 from django.core.validators import MinValueValidator
-from datetime import date, timedelta
 from django.utils import timezone
 from django.core.exceptions import ValidationError
+from django.utils.timezone import now
+
+
+from datetime import date, timedelta
+import uuid
 
 
 # Create your models here.
@@ -45,3 +49,13 @@ class ElectionSetting(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class PasswordResetToken(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    token = models.UUIDField(default=uuid.uuid4, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def is_valid(self):
+        """Check if token is still valid (e.g., expires in 1 hour)"""
+        return now() - self.created_at < timedelta(hours=1)
