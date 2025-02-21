@@ -9,6 +9,7 @@ pyotp = "*"
 pillow = "*"
 mysqlclient = "*"
 django-cors-headers = "*"
+django-debug-toolbar = "*"
 
 [dev-packages]
 

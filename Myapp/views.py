@@ -10,9 +10,12 @@ from django.utils.decorators import method_decorator
 from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib.auth.hashers import make_password
+from django.utils import timezone
+
 
 from datetime import datetime
 import pyotp
+from collections import defaultdict
 from json import dumps, loads
 
 from .forms import CreateUserForm
@@ -96,7 +99,7 @@ class OtpView(View):
 
     def get(self, request):
         username = request.session["username"]
-        email = models.User.objects.get(username=username).email
+        email = User.objects.get(username=username).email
         return render(request, "otp.html", {"email": email})
 
     def post(self, request):
@@ -105,9 +108,6 @@ class OtpView(View):
         otp_secret = request.session["otp_secret"]
         valid_date = request.session["otp_valid_date"]
 
-        print(f"username : {username}")
-        print(f"valid_date:{valid_date}")
-
         if otp_secret and valid_date is not None:
             valid_until = datetime.fromisoformat(valid_date)
 
@@ -115,7 +115,7 @@ class OtpView(View):
                 totp = pyotp.TOTP(otp_secret, interval=300)
 
                 if pyotp.TOTP(otp_secret, interval=300).verify(otp):
-                    user = get_object_or_404(User, username=username)
+                    user = User.objects.get(username=username)
                     login(request, user)
 
                     # del request.session["otp_secret"]
@@ -139,25 +139,72 @@ class HomePage(View):
             username=request.user
         ).id  # get the id of voter who submit the vote
 
-        if not (
-            get_object_or_404(models.Voter, voter_id=voter_id)
-        ).is_voted:  # check if voter has voted or not
+        election_settings = (
+            models.ElectionSetting.objects.all()
+        )  # get the election data
+        start_date = election_settings.values("startdate")[0][
+            "startdate"
+        ]  # get the start date
+        end_date = election_settings.values("enddate")[0]["enddate"]  # get the end date
+        today_date = timezone.now().date()
+        print(start_date, end_date, today_date)
 
-            positions = models.Post.objects.all()
-            data = {}
+        if (
+            start_date <= today_date and today_date <= end_date
+        ):  # if voting time is remaining
+            if not (
+                get_object_or_404(models.Voter, voter_id=voter_id)
+            ).is_voted:  # check if voter has voted or not
 
-            for position in positions:
-                candidates = models.Candidate.objects.filter(post=position)
-                data[position.name] = [
-                    {"name": candidate.name, "photo": candidate.photo}
-                    for candidate in candidates
+                # positions = models.Post.objects.all()
+                # data = {}
+
+                # for position in positions:
+                #     candidates = models.Candidate.objects.select_related("post").filter(
+                #         post=position
+                #     )
+
+                #     data[position.name] = [
+                #         {"name": candidate.name, "photo": candidate.photo}
+                #         for candidate in candidates
+                #     ]
+                # print(data)
+                # dataJSON = dumps(data)
+
+                candidates = models.Candidate.objects.select_related(
+                    "post"
+                ).all()  # get queryset
+                data = [
+                    {
+                        "name": candidate.name,
+                        "post": candidate.post.name,
+                        "photo": candidate.photo,
+                    }
+                    for candidate in candidates  # loop through candidates
                 ]
-            dataJSON = dumps(data)
-            return render(request, "mainpage.html", {"data": dataJSON})
+                # Convert the list into a dictionary grouped by 'post'
 
+                grouped_candidates = defaultdict(list)
+                for d in data:
+                    grouped_candidates[d["post"]].append(
+                        {"name": d["name"], "photo": d["photo"]}
+                    )
+                grouped_candidates = dict(grouped_candidates)
+                print("_______________________________________________________")
+                print(grouped_candidates)
+
+                return render(
+                    request, "mainpage.html", {"data": dumps(grouped_candidates)}
+                )  #
+
+            else:
+                message = "You have already voted."
+                return render(request, "resultsoon.html", {"message": message})
+
+        elif start_date > today_date:
+            return render(request, "electionsoon.html", {"start_date": start_date})
         else:
-            message = "You have already voted."
-            return render(request, "resultsoon.html", {"message": message})
+            return render(request, "electionend.html")
 
     @csrf_exempt
     def post(self, request):
@@ -167,26 +214,30 @@ class HomePage(View):
         return render(request, "voterresult.html")
 
 
+
 def voterresult(request):
     if request.method == "POST":
         voter_id = models.User.objects.get(
             username=request.user
         ).id  # get the id of voter who submit the vote
-        models.Voter.objects.filter(voter_id=voter_id).update(
-            is_voted=True
-        )  # makes the is_voted to True
+        # models.Voter.objects.filter(voter_id=voter_id).update(
+        #     is_voted=True
+        # )  # makes the is_voted to True
 
         data = loads(request.body)
         print(data)
-        votes = data["votes"]
+        votes = data["vote"]
+        print("_____________________________________________________")
+        print(votes)
         for v in votes:
             post = v
             candidate_name = votes[post]["name"]
-            candidate = get_object_or_404(models.Candidate, name=candidate_name)
-            candidate.votes += 1
-            candidate.save()
+            candidate = get_object_or_404(
+                models.Candidate, name=candidate_name
+            )  # get candidate to whom vote is casted
+            candidate.votes += 1  # increase the vote of candidate
+            candidate.save()  # save the candidate data after increasing the vote count
             print(f"{post} {candidate_name}", end="/n")
-
     return render(request, "voterresult.html")
 
 
@@ -280,9 +331,7 @@ def request_password_reset(request):
     if request.method == "POST":
         username = (request.POST.get("username")).lower()
         try:
-            user = User.objects.get(
-                username=username
-            )  # check id user id is valid or not
+            user = request.user
             email = user.email  # get email from user
         except User.DoesNotExist:
             return render(

@@ -33,10 +33,9 @@
   </head>
   <body>
     <div class="sidebar" id="sidebar">
-      <div class="toggle" id="toggleBtn">☰</div>
-      <a class="options" href="#"><span>Vote</span></a>
-      <a class="options" href="#"><span>Post</span></a>
-      <a class="logout" href="{% url 'loginpage' %}">
+      <a class="options" href="{% url 'homepage' %}"><span>Vote</span></a>
+      <a class="options" href="{% url 'result' %}"><span>Result</span></a>
+      <a class="logout" href="{% url 'logoutpage' %}">
         <span
           ><i class="fa fa-power-off" style="font-size: 12px"></i
           >&nbsp;Logout</span
@@ -184,6 +183,7 @@
             "Content-Type": "application/json",
             "X-CSRFToken": "{{ csrf_token }}", // Include CSRF token for security
           },
+          body: JSON.stringify({ vote: votes }),
         })
           .then((response) => response.json())
           .then((data) => {
