@@ -1,0 +1,36 @@
+{% extends "dashboard/temp.html" %} {% block maincontent %}
+<!-- Main Content -->
+
+<div id="dashboard">
+  <h2>Dashboard</h2>
+  <p>Welcome to the Online Voting System Admin Panel.</p>
+  <div class="row">
+    <div class="col-md-4">
+      <div class="card text-white bg-primary mb-3">
+        <div class="card-body">
+          <h5 class="card-title">Total Candidates</h5>
+          <p class="card-text">{{total_candidate}}</p>
+          {% comment %} here {% endcomment %}
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card text-white bg-success mb-3">
+        <div class="card-body">
+          <h5 class="card-title">Total Voters</h5>
+          <p class="card-text">{{total_voter}}</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card text-white bg-danger mb-3">
+        <div class="card-body">
+          <h5 class="card-title">Total Posts</h5>
+          <p class="card-text">{{total_post}}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% endblock maincontent %}
+</div>

@@ -56,7 +56,8 @@
               <label class="form-label" for="form3Example3"
                 >ID number(Format:PAS078BCT005)</label
               >
-              http://127.0.0.1:8000/registration/ {%for message in messages%}
+              {% comment %} http://127.0.0.1:8000/registration/ {% endcomment %}
+              {%for message in messages%}
               <h5>"{{message}}"</h5>
               {%endfor%}
               <!-- Email input -->

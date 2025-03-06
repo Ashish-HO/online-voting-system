@@ -1,37 +1,94 @@
-<html>
-  <h1>Election will start soon...</h1>
-  <style>
-    h1 {
-      text-align: center;
-      color: black;
-      font-size: 75px;
-    }
-    body {
-      background-color: rgba(228, 241, 243, 0.99);
-    }
-    disabled-link {
-      pointer-events: none;
-      color: gray;
-      text-decoration: none;
-    }
-  </style>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Election Countdown</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        background-color: #e6f7f9;
+      }
+      h1 {
+        font-size: 40px;
+        font-weight: bold;
+      }
+      .countdown {
+        display: flex;
+        justify-content: center;
+        font-size: 50px;
+        font-weight: bold;
+      }
+      .time {
+        background: black;
+        color: white;
+        padding: 20px;
+        margin: 10px;
+        border-radius: 10px;
+        min-width: 100px;
+      }
+      .label {
+        font-size: 16px;
+        font-weight: normal;
+      }
+    </style>
+  </head>
   <body>
-    <p id="demo"></p>
-    <script src="https://cdn.logwork.com/widget/countdown.js"></script>
-    <a
-      href="https://logwork.com/countdown-timer"
-      id="disabled-link"
-      class="countdown-timer"
-      data-timezone="Asia/Kathmandu"
-      data-date="2025-02-19"
-      >Count Down</a
-    >
+    <h1>Election will start soon...</h1>
+    <h2>Count Down</h2>
+    <div class="countdown">
+      <div>
+        <div class="time" id="days">00</div>
+        <div class="label">Days</div>
+      </div>
+      <div>
+        <div class="time" id="hours">00</div>
+        <div class="label">Hours</div>
+      </div>
+      <div>
+        <div class="time" id="minutes">00</div>
+        <div class="label">Minutes</div>
+      </div>
+      <div>
+        <div class="time" id="seconds">00</div>
+        <div class="label">Seconds</div>
+      </div>
+    </div>
+    {{start_date}}
     <script>
-      document
-        .getElementById("disabled-link")
-        .addEventListener("click", function (event) {
-          event.preventDefault(); // Stops navigation
-        });
+      function startCountdown(duration) {
+        let countdown = duration;
+        const daysEl = document.getElementById("days");
+        const hoursEl = document.getElementById("hours");
+        const minutesEl = document.getElementById("minutes");
+        const secondsEl = document.getElementById("seconds");
+
+        function updateTimer() {
+          let days = Math.floor(countdown / (60 * 60 * 24));
+          let hours = Math.floor((countdown % (60 * 60 * 24)) / (60 * 60));
+          let minutes = Math.floor((countdown % (60 * 60)) / 60);
+          let seconds = countdown % 60;
+
+          daysEl.textContent = String(days).padStart(2, "0");
+          hoursEl.textContent = String(hours).padStart(2, "0");
+          minutesEl.textContent = String(minutes).padStart(2, "0");
+          secondsEl.textContent = String(seconds).padStart(2, "0");
+
+          if (countdown <= 0) {
+            clearInterval(timer);
+            window.location.href = "/home"; // Change this to your homepage URL
+          }
+          countdown--;
+        }
+
+        updateTimer();
+        let timer = setInterval(updateTimer, 1000);
+      }
+
+      // Set countdown duration (example: 14 hours 55 minutes)
+      let countdownSeconds = 0 * 60 * 60 + 1 * 60; // Adjust as needed
+      startCountdown(countdownSeconds);
     </script>
   </body>
 </html>

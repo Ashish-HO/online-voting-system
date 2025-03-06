@@ -1,0 +1,55 @@
+{% extends "dashboard/temp.html" %} {% block maincontent %}
+
+<div class="container mt-5">
+  <h2 class="mb-4"><i class="fas fa-user-plus"></i> Edit Candidate</h2>
+
+  <div class="card">
+    <div class="card-body">
+      <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <!-- Candidate Name -->
+        <div class="mb-3">
+          <label for="candidateName" class="form-label">Candidate Name</label>
+          {{form.name}}
+        </div>
+
+        <!-- Party Name -->
+        <div class="mb-3">
+          <label for="Email" class="form-label">Email</label>
+          {{form.email}}
+        </div>
+
+        <!-- Position -->
+        <div class="mb-3">
+          <label for="position" class="form-label">Position</label>
+          {{form.post}}
+        </div>
+
+        <!-- Upload Photo -->
+        <div class="mb-3">
+          <label for="photo" class="form-label">Candidate Photo</label>
+          {{form.photo}}
+        </div>
+        <div class="mb-3">
+          <label for="photo" class="form-label"> Phone</label>
+          {{form.phone}}
+        </div>
+        <div class="mb-3">
+          <label for="photo" class="form-label">Description</label>
+          {{form.description}}
+        </div>
+
+        {{error}}
+
+        <!-- Submit Button -->
+        <a href="{% url 'candidate' %}">
+          <button type="submit" class="btn btn-success">
+            <i class="fas fa-save"></i> Save Candidate
+          </button>
+        </a>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

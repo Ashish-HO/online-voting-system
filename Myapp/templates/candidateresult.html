@@ -11,27 +11,47 @@
       body {
         font-family: Arial, sans-serif;
         text-align: center;
-        background-color: rgb(230, 235, 225);
+        background-color: rgb(159, 219, 80);
       }
       .container {
         width: 80%;
         margin: 20px auto;
         padding: 20px;
-        background: rgb(248, 250, 247);
+        background: rgb(185, 221, 137);
         border-radius: 8px;
         box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
       }
-      /* Flex container for chart columns */
-      #charts-container {
+      /* Flex container for each post */
+      .post-container {
         display: flex;
-        flex-wrap: wrap; /* Allow the charts to wrap to the next row if space is limited */
-        justify-content: space-around; /* Distribute the charts evenly */
-        gap: 20px; /* Add space between charts */
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 20px;
+        margin-bottom: 40px;
+      }
+      .table-container {
+        flex: 1 1 45%;
+        min-width: 300px;
       }
       .chart-container {
-        flex: 1 1 45%; /* Ensure the charts take up equal space, 45% for two charts per row */
-        min-width: 300px; /* Prevent charts from getting too small */
-        margin-bottom: 40px;
+        flex: 1 1 45%;
+        min-width: 300px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+      }
+      th,
+      td {
+        border: 1px solid black;
+        padding: 10px;
+        text-align: left;
+      }
+      th {
+        background: rgb(149, 201, 81);
+        color: white;
       }
       canvas {
         max-width: 100%;
@@ -39,49 +59,64 @@
     </style>
   </head>
   <body>
-    <div class="sidebar" id="sidebar">
-      <a class="options" href="{% url 'homepage' %}"><span>Vote</span></a>
-      <a class="options" href="{% url 'result' %}"><span>Result</span></a>
-      <a class="logout" href="{% url 'loginpage' %}">
-        <span
-          ><i class="fa fa-power-off" style="font-size: 12px"></i
-          >&nbsp;Logout</span
-        >
-      </a>
-    </div>
-    <div class="content">
-      <div class="container">
-        <h1>Online Voting Results</h1>
-        <div id="charts-container"></div>
-        <!-- Charts will be inserted here -->
-      </div>
+    <div class="container">
+      <h1>Online Voting Results</h1>
+      <div id="charts-container"></div>
+      <!-- Charts and tables will be inserted here -->
     </div>
 
     <script>
       // Parse JSON data from Django
       const data = JSON.parse("{{ data|escapejs }}");
 
-      // Get container to insert charts
+      // Get container to insert charts and tables
       const chartsContainer = document.getElementById("charts-container");
 
-      // Loop through positions to generate separate charts
+      // Loop through positions to generate separate tables and charts
       Object.entries(data).forEach(([position, candidates], index) => {
-        // Create a div for each chart
-        const chartDiv = document.createElement("div");
-        chartDiv.classList.add("chart-container");
+        // Create a div for each post container
+        const postContainer = document.createElement("div");
+        postContainer.classList.add("post-container");
+
+        // Create table container
+        const tableContainer = document.createElement("div");
+        tableContainer.classList.add("table-container");
 
         // Create a heading for the position
         const positionHeading = document.createElement("h2");
         positionHeading.textContent = position;
-        chartDiv.appendChild(positionHeading);
+        tableContainer.appendChild(positionHeading);
 
-        // Create a canvas for the chart
+        // Create a table
+        const table = document.createElement("table");
+        const thead = document.createElement("thead");
+        const tbody = document.createElement("tbody");
+
+        // Create table headers
+        thead.innerHTML = `<tr><th>Candidate</th><th>Total Votes</th></tr>`;
+        table.appendChild(thead);
+        table.appendChild(tbody);
+
+        // Populate table with candidate data
+        candidates.forEach((candidate) => {
+          const row = document.createElement("tr");
+          row.innerHTML = `<td>${candidate.name}</td><td>${candidate.votes}</td>`;
+          tbody.appendChild(row);
+        });
+
+        tableContainer.appendChild(table);
+        postContainer.appendChild(tableContainer);
+
+        // Create chart container
+        const chartContainer = document.createElement("div");
+        chartContainer.classList.add("chart-container");
         const canvas = document.createElement("canvas");
         canvas.id = `chart-${index}`;
-        chartDiv.appendChild(canvas);
+        chartContainer.appendChild(canvas);
+        postContainer.appendChild(chartContainer);
 
-        // Append the chart div to the container
-        chartsContainer.appendChild(chartDiv);
+        // Append the post container to the main container
+        chartsContainer.appendChild(postContainer);
 
         // Extract candidate names and votes
         const candidateNames = candidates.map((c) => c.name);

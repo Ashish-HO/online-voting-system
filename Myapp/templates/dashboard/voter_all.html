@@ -1,0 +1,39 @@
+{% extends "dashboard/temp.html" %} {% block maincontent %}
+
+<!-- Manage Voters -->
+<div id="voters">
+  <h2>Manage Voters</h2>
+
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Has Voted</th>
+        {% comment %}
+        <th>Voted Time</th>
+        {% endcomment %} {% comment %}
+        <th>Actions</th>
+        {% endcomment %}
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        {% for d in data%}
+        <td name="ID">{{d.name}}</td>
+
+        <td name="has_voted">{{d.has_voted}}</td>
+        {% comment %}
+        <td name="has_voted">{{d.voted_time}}</td>
+        {% endcomment %} {% comment %}
+        <td>
+          <button class="btn btn-sm btn-warning">Edit</button>
+          <button class="btn btn-sm btn-danger">Delete</button>
+        </td>
+        {% endcomment %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock maincontent %}

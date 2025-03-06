@@ -25,4 +25,4 @@ data = {
 for d in data:
     post = d
     print(post)
-    print(data[post]['name'])
+    print(data[post]["name"])

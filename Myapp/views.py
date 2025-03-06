@@ -12,18 +12,18 @@ from django.conf import settings
 from django.contrib.auth.hashers import make_password
 from django.utils import timezone
 
-
 from datetime import datetime
+
 import pyotp
 from collections import defaultdict
 from json import dumps, loads
 
-from .forms import CreateUserForm
+from .forms import CreateUserForm, CandidateAddForm, PostAddForm, ElectionForm
 from .utils import send_otp
-
-# vote form
 from . import models
 from .models import PasswordResetToken
+
+from pprint import pprint
 
 
 def showvote(request):
@@ -84,6 +84,7 @@ class LoginPage(View):
         username = request.POST.get("username").lower()
         password = request.POST.get("password")
         user = authenticate(request, username=username, password=password)
+
         if user is not None:
             # SEND OTP TO USER....
             email = user.email
@@ -144,9 +145,9 @@ class HomePage(View):
         )  # get the election data
         start_date = election_settings.values("startdate")[0][
             "startdate"
-        ]  # get the start date
+        ]  # get the first start date
         end_date = election_settings.values("enddate")[0]["enddate"]  # get the end date
-        today_date = timezone.now().date()
+        today_date = timezone.now()
         print(start_date, end_date, today_date)
 
         if (
@@ -155,21 +156,6 @@ class HomePage(View):
             if not (
                 get_object_or_404(models.Voter, voter_id=voter_id)
             ).is_voted:  # check if voter has voted or not
-
-                # positions = models.Post.objects.all()
-                # data = {}
-
-                # for position in positions:
-                #     candidates = models.Candidate.objects.select_related("post").filter(
-                #         post=position
-                #     )
-
-                #     data[position.name] = [
-                #         {"name": candidate.name, "photo": candidate.photo}
-                #         for candidate in candidates
-                #     ]
-                # print(data)
-                # dataJSON = dumps(data)
 
                 candidates = models.Candidate.objects.select_related(
                     "post"
@@ -214,15 +200,14 @@ class HomePage(View):
         return render(request, "voterresult.html")
 
 
-
 def voterresult(request):
     if request.method == "POST":
         voter_id = models.User.objects.get(
             username=request.user
         ).id  # get the id of voter who submit the vote
-        # models.Voter.objects.filter(voter_id=voter_id).update(
-        #     is_voted=True
-        # )  # makes the is_voted to True
+        models.Voter.objects.filter(voter_id=voter_id).update(
+            is_voted=True
+        )  # makes the is_voted to True
 
         data = loads(request.body)
         print(data)
@@ -255,89 +240,18 @@ def candidateresult(request):
     return render(request, "candidateresult.html", {"data": dataJSON})
 
 
-"""
-class CandidateAdd(View):
-
-    def get(self, request):
-        data = models.Candidate.objects.all()
-        return render(request, "Addcandidate.html", {"data": data})
-
-    def post(self, request):
-        form = CandidateAddForm(request.POST)
-
-        if form.is_valid():
-            form.save()
-            message = "Candidated added successfully."
-            return render(request, "Addcandidate.html", {"message": message})
-        else:
-            error = form.errors
-            
-            return render(request, "Addcandidate.html", {"error": error})
-
-    def delete(self, request, candidate_id):
-        candidate = get_object_or_404(models.Candidate, id=candidate_id)
-        candidate.delete()
-        message = f"{post_id} successfully deleted."
-        return render(request, "Addcandidate.html", {"message": message})
-
-    def patch(self,request,candidate_id):
-        post=get_object_or_404(models.Candidate,id=candidate_id)
-        form=CandidateAddForm(request.POST,instance=post)
-
-        if form.is_valid():
-            form.save()
-            message="Update successfully."
-            return render(request,"Addcandidate.html",{"message":message})
-        return render(request,"Addcandidate.html",{"error":form.errors})
-
-
-
-class PostAdd(View):
-
-    def get(self, request): #read method
-        data = models.Post.objects.all() #get all the objects of post
-        return render(request, "Addpost.html", {"data": data})
-
-    def post(self, request): # Create method
-        form = PostAddForm(request.POST) #get entered data 
-
-        if form.is_valid():
-            form.save() #data saved to database
-            message = "Post added successfully."
-            return render(request, "Addpost.html", {"message": message})
-        else:
-            error = form.errors
-            return render(request, "Addpost.html", {"error": error})
-
-    def delete(self, request, post_id): #delete method 
-        post = get_object_or_404(models.Post, id=post_id) #get specific post to delete
-        post.delete()
-        message = f"{post_id} successfully deleted."
-        return render(request, "Addpost.html", {"message": message})
-
-    def patch(self,request,post_id): #update specific post
-        post=get_object_or_404(models.Post,id=post_id) 
-        form=PostAddForm(request.POST,instance=post) #update post with new data
-
-        if form.is_valid():
-            form.save()
-            message="Update successfully."
-            return render(request,"Addpost.html",{"message":message})
-        return render(request,"Addpost.html",{"error":form.errors})
-"""
-
-
 def request_password_reset(request):
     if request.method == "POST":
         username = (request.POST.get("username")).lower()
         try:
-            user = request.user
+            user = User.objects.get(username=username)
+            print(user)
             email = user.email  # get email from user
         except User.DoesNotExist:
             return render(
                 request,
                 "reset/password_reset_form.html",
-                {"message": "User doesn't exixt"},
+                {"message": "User doesn't exist"},
             )
 
         # Create a new reset token
@@ -385,3 +299,180 @@ def reset_password(request, token):
     return render(
         request, "reset/PasswordResetConfirm.html"
     )  # Render password input form
+
+
+class AdminSection(View):
+    def get(self, request):
+        candidate_data = models.Candidate.objects.select_related("post").all()
+        post_data = models.Post.objects.all()
+        voter_data = models.Voter.objects.all()
+        total_candidate = len(candidate_data)
+        total_voter = len(voter_data)
+        total_post = len(post_data)
+
+        return render(
+            request,
+            "dashboard/dashboard.html",
+            {
+                "total_candidate": total_candidate,
+                "total_voter": total_voter,
+                "total_post": total_post,
+            },
+        )
+
+
+class Candidate(View):
+    def get(self, request):
+        queryset = models.Candidate.objects.select_related("post").all()
+        data = []
+        print(queryset[0].post)
+
+        for query in queryset:
+            data.append(
+                {
+                    "id": query.id,
+                    "name": query.name,
+                    "photo": query.photo,
+                    "phone": query.phone,
+                    "email": query.email,
+                    "post": query.post,
+                }
+            )
+
+        pprint(data)
+
+        return render(request, "dashboard/candidate_all.html", {"data": data})
+
+
+class Post(View):
+    def get(self, request):
+        queryset = models.Post.objects.all()
+        data = []
+        for query in queryset:
+            data.append(
+                {"id": query.id, "name": query.name, "description": query.description}
+            )
+        pprint(data)
+        return render(request, "dashboard/post_all.html", {"data": data})
+
+
+class Voter(View):
+    def get(self, request):
+        queryset = models.Voter.objects.all()
+        data = []
+        for query in queryset:
+            data.append(
+                {
+                    "id": query.id,
+                    "name": query.voter,
+                    "has_voted": query.is_voted,
+                    "voted_time": query.voted_time,
+                }
+            )
+        pprint(data)
+        return render(request, "dashboard/voter_all.html", {"data": data})
+
+
+def AddCandidate(request):
+    post = models.Post.objects.all()
+    post_name = [p.name for p in post]
+    if request.method == "GET":
+        form = CandidateAddForm()
+        return render(
+            request, "dashboard/add_candidate.html", {"post": post_name, "form": form}
+        )
+
+    if request.method == "POST":
+        form = CandidateAddForm(request.POST)
+        if form.is_valid():
+            form.save()
+            message = "candidate added successfully."
+            return redirect("candidate")
+
+        error = form.errors
+        return render(
+            request, "dashboard/add_candidate.html", {"post": post_name, "error": error}
+        )
+
+
+def AddPost(request):
+    if request.method == "GET":
+        form = PostAddForm()
+        return render(request, "dashboard/add_post.html")
+
+    elif request.method == "POST":
+        form = PostAddForm(request.POST)
+        if form.is_valid():
+            form.save()
+            message = "Post added successfully."
+            return redirect("post")
+
+        error = form.errors
+        return render(request, "dashboard/add_post.html", {"error": error})
+
+
+def EditCandidate(request, id):
+    candidate = get_object_or_404(models.Candidate, id=id)
+    if request.method == "GET":
+        form = CandidateAddForm(instance=candidate)
+        return render(request, "dashboard/edit_candidate.html", {"form": form})
+
+    elif request.method == "POST":
+        form = CandidateAddForm(request.POST, instance=candidate)
+        if form.is_valid():
+            form.save()
+            message = "candidate updated successfully."
+            return redirect("candidate")
+        error = form.errors
+        return render(
+            request, "dashboard/edit_candidate.html", {"form": form, "error": error}
+        )
+
+
+def EditPost(request, id):
+    post = get_object_or_404(models.Post, id=id)
+    print(post.name)
+    print(post.description)
+
+    if request.method == "GET":
+        form = PostAddForm(instance=post)
+        return render(request, "dashboard/edit_post.html", {"form": form})
+
+    elif request.method == "POST":
+        form = PostAddForm(request.POST, instance=post)
+        if form.is_valid():
+            form.save()
+            message = "Post updated successfully."
+            return redirect("post")
+
+        error = form.errors
+        return render(request, "dashboard/edit_post.html", {"error": error})
+
+
+def EditElection(request):
+    election_data = models.ElectionSetting.objects.all().first()
+    if request.method == "GET":
+        form = ElectionForm(instance=election_data)
+        return render(request, "dashboard/edit_election.html", {"form": form})
+
+    elif request.method == "POST":
+        form = ElectionForm(request.POST, instance=election_data)
+        if form.is_valid():
+            form.save()
+            message = "Election data updated successfully."
+            return redirect("adminsection")
+        pass
+
+
+def DeletePost(request, id):
+    post = get_object_or_404(models.Post, id=id)
+    post.delete()
+    message = "Post deleted successfully."
+    return redirect("post")
+
+
+def DeleteCandidate(request, id):
+    candidate = get_object_or_404(models.Candidate, id=id)
+    candidate.delete()
+    message = "candidate deleted successfully."
+    return redirect("candidate")

@@ -1,0 +1,72 @@
+{% extends "dashboard/temp.html" %} {% block maincontent %}
+
+<title>Election Settings</title>
+<style>
+  .container {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
+  }
+
+  h1 {
+    text-align: center;
+    color: #333;
+  }
+
+  label {
+    font-weight: bold;
+    margin-top: 10px;
+    display: block;
+  }
+
+  input[type="text"],
+  input[type="datetime-local"] {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+
+  button {
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 4px;
+    width: 100%;
+  }
+
+  button:hover {
+    background-color: #45a049;
+  }
+
+  .error {
+    color: red;
+    font-size: 12px;
+  }
+</style>
+
+<div class="container">
+  <h1>Event Settings</h1>
+  <form id="eventForm" method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    <label for="title">Election Title</label>
+    {{form.title}}
+    <label for="start">Start Date & Time</label>
+    {{form.startdate}}
+    <label for="end">End Date & Time</label>
+    {{form.enddate}}
+
+    <div id="errorMessage" class="error"></div>
+    <button type="submit">Update</button>
+  </form>
+</div>
+
+{% endblock maincontent %}

@@ -26,7 +26,7 @@ class Candidate(models.Model):
     phone = models.IntegerField()
     email = models.EmailField()
     description = models.TextField()
-    votes = models.IntegerField(default=0, editable=True)
+    votes = models.IntegerField(default=0, editable=False)
     post = models.ForeignKey(to="Post", on_delete=models.CASCADE)
 
     def __str__(self):
@@ -41,29 +41,16 @@ class Post(models.Model):
         return self.name
 
 
-# validator for start date of election settings
-# def validate_startdate_in_future(value):
-#     if value <= timezone.now().date():
-#         raise ValidationError("The start date must be in the future.")
 
 
 class ElectionSetting(models.Model):
     title = models.CharField(max_length=255)
-    startdate = models.DateField(
+    startdate = models.DateTimeField(
         default=timezone.now().date() + timedelta(days=1),
         # validators=[validate_startdate_in_future],
     )
-    enddate = models.DateField(default=date.today() + timedelta(days=2))
+    enddate = models.DateTimeField(default=date.today() + timedelta(days=2))
 
-    # # validation for end date
-    # def clean(self):
-    #     super().clean()
-    #     if self.enddate <= self.startdate:
-    #         raise ValidationError("The end date must be after the start date.")
-
-    # def save(self, *args, **kwargs):
-    #     self.full_clean()  # This will call the clean method
-    #     super().save(*args, **kwargs)
 
     def __str__(self):
         return self.title
@@ -76,4 +63,4 @@ class PasswordResetToken(models.Model):
 
     def is_valid(self):
         """Check if token is still valid (e.g., expires in 1 hour)"""
-        return now() - self.created_at < timedelta(hours=1)
+        return timezone.now() - self.created_at < timedelta(hours=1)
