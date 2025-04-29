@@ -136,61 +136,64 @@ class OtpView(View):
 class HomePage(View):
 
     def get(self, request):
-        voter_id = models.User.objects.get(
-            username=request.user
-        ).id  # get the id of voter who submit the vote
-
-        election_settings = (
-            models.ElectionSetting.objects.all()
-        )  # get the election data
-        start_date = election_settings.values("startdate")[0][
-            "startdate"
-        ]  # get the first start date
-        end_date = election_settings.values("enddate")[0]["enddate"]  # get the end date
-        today_date = timezone.now()
-        print(start_date, end_date, today_date)
-
-        if (
-            start_date <= today_date and today_date <= end_date
-        ):  # if voting time is remaining
-            if not (
-                get_object_or_404(models.Voter, voter_id=voter_id)
-            ).is_voted:  # check if voter has voted or not
-
-                candidates = models.Candidate.objects.select_related(
-                    "post"
-                ).all()  # get queryset
-                data = [
-                    {
-                        "name": candidate.name,
-                        "post": candidate.post.name,
-                        "photo": candidate.photo,
-                    }
-                    for candidate in candidates  # loop through candidates
-                ]
-                # Convert the list into a dictionary grouped by 'post'
-
-                grouped_candidates = defaultdict(list)
-                for d in data:
-                    grouped_candidates[d["post"]].append(
-                        {"name": d["name"], "photo": d["photo"]}
-                    )
-                grouped_candidates = dict(grouped_candidates)
-                print("_______________________________________________________")
-                print(grouped_candidates)
-
-                return render(
-                    request, "mainpage.html", {"data": dumps(grouped_candidates)}
-                )  #
-
-            else:
-                message = "You have already voted."
-                return render(request, "resultsoon.html", {"message": message})
-
-        elif start_date > today_date:
-            return render(request, "electionsoon.html", {"start_date": start_date})
+        if request.user.is_staff:
+            return redirect("adminsection")
         else:
-            return render(request, "electionend.html")
+            voter_id = models.User.objects.get(
+                username=request.user
+            ).id  # get the id of voter who submit the vote
+
+            election_settings = (
+                models.ElectionSetting.objects.all()
+            )  # get the election data
+            start_date = election_settings.values("startdate")[0][
+                "startdate"
+            ]  # get the first start date
+            end_date = election_settings.values("enddate")[0]["enddate"]  # get the end date
+            today_date = timezone.now()
+            print(start_date, end_date, today_date)
+
+            if (
+                start_date <= today_date and today_date <= end_date
+            ):  # if voting time is remaining
+                if not (
+                    get_object_or_404(models.Voter, voter_id=voter_id)
+                ).is_voted:  # check if voter has voted or not
+
+                    candidates = models.Candidate.objects.select_related(
+                        "post"
+                    ).all()  # get queryset
+                    data = [
+                        {
+                            "name": candidate.name,
+                            "post": candidate.post.name,
+                            "photo": candidate.photo,
+                        }
+                        for candidate in candidates  # loop through candidates
+                    ]
+                    # Convert the list into a dictionary grouped by 'post'
+
+                    grouped_candidates = defaultdict(list)
+                    for d in data:
+                        grouped_candidates[d["post"]].append(
+                            {"name": d["name"], "photo": d["photo"]}
+                        )
+                    grouped_candidates = dict(grouped_candidates)
+                    print("_______________________________________________________")
+                    print(grouped_candidates)
+
+                    return render(
+                        request, "mainpage.html", {"data": dumps(grouped_candidates)}
+                    )  #
+
+                else:
+                    message = "You have already voted."
+                    return render(request, "resultsoon.html", {"message": message})
+
+            elif start_date > today_date:
+                return render(request, "electionsoon.html", {"start_date": start_date})
+            else:
+                return render(request, "electionend.html")
 
     @csrf_exempt
     def post(self, request):
