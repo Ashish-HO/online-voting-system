@@ -57,38 +57,45 @@
     </div>
     {{start_date}}
     <script>
-      function startCountdown(duration) {
-        let countdown = duration;
+      function startCountdown(targetTimeStr) {
+        const targetTime = new Date(targetTimeStr); // from Django
         const daysEl = document.getElementById("days");
         const hoursEl = document.getElementById("hours");
         const minutesEl = document.getElementById("minutes");
         const secondsEl = document.getElementById("seconds");
 
         function updateTimer() {
-          let days = Math.floor(countdown / (60 * 60 * 24));
-          let hours = Math.floor((countdown % (60 * 60 * 24)) / (60 * 60));
-          let minutes = Math.floor((countdown % (60 * 60)) / 60);
-          let seconds = countdown % 60;
+          const now = new Date();
+          let diff = Math.floor((targetTime - now) / 1000); // in seconds
+
+          if (diff <= 0) {
+            clearInterval(timer);
+            daysEl.textContent = "00";
+            hoursEl.textContent = "00";
+            minutesEl.textContent = "00";
+            secondsEl.textContent = "00";
+            window.location.href = "/home"; // Redirect
+            return;
+          }
+
+          let days = Math.floor(diff / (60 * 60 * 24));
+          let hours = Math.floor((diff % (60 * 60 * 24)) / (60 * 60));
+          let minutes = Math.floor((diff % (60 * 60)) / 60);
+          let seconds = diff % 60;
 
           daysEl.textContent = String(days).padStart(2, "0");
           hoursEl.textContent = String(hours).padStart(2, "0");
           minutesEl.textContent = String(minutes).padStart(2, "0");
           secondsEl.textContent = String(seconds).padStart(2, "0");
-
-          if (countdown <= 0) {
-            clearInterval(timer);
-            window.location.href = "/home"; // Change this to your homepage URL
-          }
-          countdown--;
         }
 
         updateTimer();
-        let timer = setInterval(updateTimer, 1000);
+        const timer = setInterval(updateTimer, 1000);
       }
 
-      // Set countdown duration (example: 14 hours 55 minutes)
-      let countdownSeconds = 0 * 60 * 60 + 1 * 60; // Adjust as needed
-      startCountdown(countdownSeconds);
+      // Start countdown with Django-passed datetime
+      const djangoTargetTime = "{{ start_date|safe }}";
+      startCountdown(djangoTargetTime);
     </script>
   </body>
 </html>

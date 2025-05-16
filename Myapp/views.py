@@ -149,7 +149,9 @@ class HomePage(View):
             start_date = election_settings.values("startdate")[0][
                 "startdate"
             ]  # get the first start date
-            end_date = election_settings.values("enddate")[0]["enddate"]  # get the end date
+            end_date = election_settings.values("enddate")[0][
+                "enddate"
+            ]  # get the end date
             today_date = timezone.now()
             print(start_date, end_date, today_date)
 
@@ -188,7 +190,11 @@ class HomePage(View):
 
                 else:
                     message = "You have already voted."
-                    return render(request, "resultsoon.html", {"message": message})
+                    return render(
+                        request,
+                        "resultsoon.html",
+                        {"message": message, "end_date": end_date},
+                    )
 
             elif start_date > today_date:
                 return render(request, "electionsoon.html", {"start_date": start_date})
@@ -303,23 +309,35 @@ def reset_password(request, token):
         request, "reset/PasswordResetConfirm.html"
     )  # Render password input form
 
+@method_decorator(login_required(login_url="loginpage"), name="dispatch")
 
 class AdminSection(View):
     def get(self, request):
-        candidate_data = models.Candidate.objects.select_related("post").all()
-        post_data = models.Post.objects.all()
-        voter_data = models.Voter.objects.all()
-        total_candidate = len(candidate_data)
-        total_voter = len(voter_data)
-        total_post = len(post_data)
+        positions = models.Post.objects.all()
+        total_candidate = len(models.Candidate.objects.all())
+        total_post = len(models.Post.objects.all())
+        total_voter = len(models.Voter.objects.all())
+        data = {}
+
+        for position in positions:
+            candidates = models.Candidate.objects.filter(post=position)
+            data[position.name] = [
+                {
+                    "name": candidate.name,
+                    "votes": candidate.votes,
+                }
+                for candidate in candidates
+            ]
+        dataJSON = dumps(data)
 
         return render(
             request,
             "dashboard/dashboard.html",
             {
+                "data": dataJSON,
                 "total_candidate": total_candidate,
-                "total_voter": total_voter,
                 "total_post": total_post,
+                "total_voter": total_voter,
             },
         )
 
@@ -479,3 +497,9 @@ def DeleteCandidate(request, id):
     candidate.delete()
     message = "candidate deleted successfully."
     return redirect("candidate")
+
+
+def resultsoon(request):
+    election_settings = models.ElectionSetting.objects.all()
+    end_date = election_settings.values("enddate")[0]["enddate"]
+    return render(request, "resultsoon.html", {"end_date": end_date})

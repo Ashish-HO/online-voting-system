@@ -11,6 +11,7 @@ urlpatterns = [
     path("home/", views.HomePage.as_view(), name="homepage"),
     path("voterresult/", views.voterresult, name="yourvote"),
     path("result", views.candidateresult, name="result"),
+    path("resultsoon/", views.resultsoon, name="resultsoon"),
     # reset password
     path(
         "reset-password/", views.request_password_reset, name="request_password_reset"
