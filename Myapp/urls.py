@@ -9,7 +9,7 @@ urlpatterns = [
     path("OtpView/", views.OtpView.as_view(), name="otp"),
     path("logout/", views.LogoutPage, name="logoutpage"),
     path("home/", views.HomePage.as_view(), name="homepage"),
-    path("voterresult/", views.voterresult, name="yourvote"),
+    path("voterresult/", views.voterresult, name="voterresult"),
     path("result", views.candidateresult, name="result"),
     path("resultsoon/", views.resultsoon, name="resultsoon"),
     # reset password

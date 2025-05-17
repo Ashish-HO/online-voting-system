@@ -41,8 +41,6 @@ class Post(models.Model):
         return self.name
 
 
-
-
 class ElectionSetting(models.Model):
     title = models.CharField(max_length=255)
     startdate = models.DateTimeField(
@@ -50,7 +48,6 @@ class ElectionSetting(models.Model):
         # validators=[validate_startdate_in_future],
     )
     enddate = models.DateTimeField(default=date.today() + timedelta(days=2))
-
 
     def __str__(self):
         return self.title

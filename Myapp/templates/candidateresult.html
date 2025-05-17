@@ -85,13 +85,17 @@
         gap: 20px;
         margin-bottom: 40px;
       }
-      .table-container {
-        flex: 1 1 45%;
-        min-width: 300px;
-      }
+
+      .table-container,
       .chart-container {
         flex: 1 1 45%;
         min-width: 300px;
+        max-width: 500px;
+      }
+
+      canvas {
+        width: 100% !important;
+        height: 300px !important;
       }
       table {
         width: 100%;
@@ -111,6 +115,21 @@
       canvas {
         max-width: 100%;
       }
+      .winner-label {
+        display: inline-block;
+        margin-left: 10px;
+        padding: 2px 6px;
+        background-color: gold;
+        color: black;
+        font-weight: bold;
+        font-size: 0.8em;
+        border-radius: 4px;
+      }
+      .draw-label {
+        color: orange;
+        font-weight: bold;
+        margin-left: 5px;
+      }
     </style>
 
     <div class="container">
@@ -120,65 +139,96 @@
     </div>
 
     <script>
-      // Parse JSON data from Django
-      const data = JSON.parse("{{ data|escapejs }}");
+      // Parse JSON data from Django safely
+      let data = {};
+      try {
+        data = JSON.parse("{{ data|escapejs }}");
+      } catch (error) {
+        console.error("Error parsing JSON data:", error);
+      }
 
-      // Get container to insert charts and tables
+      // Get the container to insert charts and tables
       const chartsContainer = document.getElementById("charts-container");
 
-      // Loop through positions to generate separate tables and charts
+      // Loop through each position in the data
       Object.entries(data).forEach(([position, candidates], index) => {
-        // Sort candidates by votes in descending order
-        candidates.sort((a, b) => b.votes - a.votes);
-        // Create a div for each post container
+        // Sort candidates by vote count descending
+        candidates.sort((a, b) => parseInt(b.votes) - parseInt(a.votes));
+
+        // Create container for each position
         const postContainer = document.createElement("div");
         postContainer.classList.add("post-container");
 
-        // Create table container
+        // Table container and heading
         const tableContainer = document.createElement("div");
         tableContainer.classList.add("table-container");
 
-        // Create a heading for the position
         const positionHeading = document.createElement("h2");
         positionHeading.textContent = position;
         tableContainer.appendChild(positionHeading);
 
-        // Create a table
+        // Create table elements
         const table = document.createElement("table");
         const thead = document.createElement("thead");
         const tbody = document.createElement("tbody");
 
-        // Create table headers
+        // Table headers
         thead.innerHTML = `<tr><th>Candidate</th><th>Total Votes</th></tr>`;
         table.appendChild(thead);
         table.appendChild(tbody);
 
-        // Populate table with candidate data
+        // Find the max votes
+        const maxVotes = Math.max(...candidates.map((c) => parseInt(c.votes)));
+
+        // Count how many candidates have max votes
+        const topCandidates = candidates.filter(
+          (c) => parseInt(c.votes) === maxVotes
+        );
+
+        // Add each candidate row
         candidates.forEach((candidate) => {
           const row = document.createElement("tr");
-          row.innerHTML = `<td>${candidate.name}</td><td>${candidate.votes}</td>`;
+
+          // Determine if this candidate is a winner or draw
+          let label = "";
+          if (parseInt(candidate.votes) === maxVotes) {
+            if (topCandidates.length > 1) {
+              label = '<span class="draw-label">🤝 Draw</span>';
+            } else {
+              label = '<span class="winner-label">🏆 Winner</span>';
+            }
+          }
+
+          row.innerHTML = `
+        <td>
+          ${candidate.name}
+          ${label}
+        </td>
+        <td>${candidate.votes}</td>
+      `;
           tbody.appendChild(row);
         });
 
         tableContainer.appendChild(table);
         postContainer.appendChild(tableContainer);
 
-        // Create chart container
+        // Chart container
         const chartContainer = document.createElement("div");
         chartContainer.classList.add("chart-container");
+
         const canvas = document.createElement("canvas");
         canvas.id = `chart-${index}`;
         chartContainer.appendChild(canvas);
         postContainer.appendChild(chartContainer);
 
-        // Append the post container to the main container
+        // Append to main container
         chartsContainer.appendChild(postContainer);
 
-        // Extract candidate names and votes
+        // Prepare data for chart
         const candidateNames = candidates.map((c) => c.name);
-        const votes = candidates.map((c) => c.votes);
+        const votes = candidates.map((c) => parseInt(c.votes));
 
-        // Generate the bar chart
+        // Create bar chart using Chart.js
         new Chart(canvas, {
           type: "bar",
           data: {
@@ -193,6 +243,8 @@
                   "#2ecc71",
                   "#f1c40f",
                   "#9b59b6",
+                  "#1abc9c",
+                  "#e67e22",
                 ],
                 borderColor: "#333",
                 borderWidth: 1,

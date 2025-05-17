@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Voting System</title>
     <link rel="stylesheet" href="{% static 'style.css' %}" />
+   
+
     <style>
       .hidden {
         display: none;
@@ -177,7 +179,7 @@
                     </div>`;
         }
 
-        fetch("{% url 'yourvote' %}", {
+        fetch({% url 'voterresult' %}, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -199,7 +201,7 @@
       // Show results section
       const seeMyVotesBtn = document.getElementById("seeMyVotesBtn");
       seeMyVotesBtn.addEventListener("click", () => {
-        window.location.href = "{%url 'yourvote' %}";
+        window.location.href = "{%url 'voterresult' %}";
       });
     </script>
   </body>

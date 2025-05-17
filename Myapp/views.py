@@ -223,15 +223,17 @@ def voterresult(request):
         votes = data["vote"]
         print("_____________________________________________________")
         print(votes)
-        for v in votes:
-            post = v
-            candidate_name = votes[post]["name"]
-            candidate = get_object_or_404(
-                models.Candidate, name=candidate_name
-            )  # get candidate to whom vote is casted
-            candidate.votes += 1  # increase the vote of candidate
+        for post, vote_info in votes.items():
+            candidate_name = vote_info["name"]
+
+            if candidate_name == "No vote cast":
+                continue  # Skip this post
+
+            print(candidate_name)
+            candidate = get_object_or_404(models.Candidate, name=candidate_name)
+            candidate.votes += 1
             candidate.save()  # save the candidate data after increasing the vote count
-            print(f"{post} {candidate_name}", end="/n")
+
     return render(request, "voterresult.html")
 
 
@@ -310,7 +312,6 @@ def reset_password(request, token):
     )  # Render password input form
 
 @method_decorator(login_required(login_url="loginpage"), name="dispatch")
-
 class AdminSection(View):
     def get(self, request):
         positions = models.Post.objects.all()
